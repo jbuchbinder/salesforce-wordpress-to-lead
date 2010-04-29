@@ -38,7 +38,7 @@ if (!class_exists('OV_Plugin_Admin')) {
 				wp_enqueue_style('thickbox');
 				wp_enqueue_style('global');
 				wp_enqueue_style('wp-admin');
-				wp_enqueue_style('blogicons-admin-css', WP_CONTENT_URL . '/plugins/' . plugin_basename(dirname(__FILE__)). '/yst_plugin_tools.css');
+				wp_enqueue_style('ov-admin-css', WP_CONTENT_URL . '/plugins/' . plugin_basename(dirname(__FILE__)). '/yst_plugin_tools.css');
 			}
 		}
 
