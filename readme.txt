@@ -15,7 +15,7 @@ You can fully configure all the different settings for the form, and then use a 
 
 Please see [this video](http://www.youtube.com/watch?v=hnMzkxPUIyc) to get a full grasp of the power this plugin holds, and visit the [Salesforce WordPress page]( http://www.salesforce.com/form/signup/wordpress-to-lead.jsp?d=70130000000F4Mw).
 
-<object width="640" height="385"><param name="movie" value="http://www.youtube.com/v/hnMzkxPUIyc&hl=en_US&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/hnMzkxPUIyc&hl=en_US&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="385"></embed></object>
+<object width="532" height="320"><param name="movie" value="http://www.youtube.com/v/hnMzkxPUIyc&hl=en_US&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/hnMzkxPUIyc&hl=en_US&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="532" height="320"></embed></object>
 
 == Screenshots ==
 
