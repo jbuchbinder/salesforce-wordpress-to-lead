@@ -380,7 +380,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 	$content .= "\t".'<input type="submit" name="w2lsubmit" class="w2linput submit" value="'.$submit.'"/>'."\n";
 	$content .= '</form>'."\n";
 
-	$reqtext = $options['requiredfieldstext'];
+	$reqtext = stripslashes($options['requiredfieldstext']);
 	if (!empty($reqtext))
 		$content .= '<p id="requiredfieldsmsg"><sup>*</sup>'.$reqtext.'</p>';
 	$content .= '<div id="salesforce"><small>Powered by <a href="http://www.salesforce.com/">Salesforce CRM</a></small></div>';
@@ -432,9 +432,9 @@ function salesforce_form_shortcode($is_sidebar = false) {
 		if (!$error) {
 			$result = submit_salesforce_form($post, $options);
 			if (!$result)
-				$content = '<strong>'.$options['sferrormsg'].'</strong>';			
+				$content = '<strong>'.stripslashes($options['sferrormsg']).'</strong>';			
 			else
-				$content = '<strong>'.$options['successmsg'].'</strong>';
+				$content = '<strong>'.stripslashes($options['successmsg']).'</strong>';
 		} else {
 			$content = $options['errormsg'];
 			$content = salesforce_form($options, $is_sidebar, $content);
