@@ -1,9 +1,9 @@
 === WordPress-to-lead for Salesforce CRM ===
 Contributors: joostdevalk
-Tags: crm, contact form, contactform, wordpress to lead, wordpresstolead,  salesforce.com,  salesforce,  salesforce crm, contact form plugin, contact form builder,  wordpress crm
+Tags: crm, contact form, contactform, wordpress to lead, wordpresstolead, salesforce.com, salesforce, salesforce crm, contact form plugin, contact form builder, Wordpress CRM
 Requires at least: 2.8
 Tested up to: 3.0
-Stable tag: 1.0
+Stable tag: 1.0.1
 
 WordPress-to-Lead for Salesforce CRM creates a solid integration between your WordPress install(s) and your Salesforce.com account! People can enter a contact form on your site, and the lead goes straight into Salesforce CRM: no more copy pasting lead info, no more missing leads: each and every one of them is in Salesforce.com for you to follow up.
 
@@ -13,7 +13,7 @@ WordPress-to-Lead for Salesforce CRM creates a solid integration between your Wo
 
 You can fully configure all the different settings for the form, and then use a shortcode to insert the form into your posts or pages, or you can use the widget that comes with the plugin and insert the form into your sidebar!
 
-Please see [this video](http://www.youtube.com/watch?v=hnMzkxPUIyc) to get a full grasp of the power this plugin holds, and visit the [Salesforce WordPress page]( http://www.salesforce.com/form/signup/wordpress-to-lead.jsp?d=70130000000F4Mw).
+Please see [this video](http://www.youtube.com/watch?v=hnMzkxPUIyc) to get a full grasp of the power this plugin holds, and visit the [Salesforce WordPress page]( http://www.salesforce.com/form/signup/wordpress-to-lead.jsp?d=70130000000F4Mw). Check out this page to learn more about [CRM for Small Business](http://www.salesforce.com/smallbusinesscenter/CRM).
 
 <object width="532" height="320"><param name="movie" value="http://www.youtube.com/v/hnMzkxPUIyc&hl=en_US&fs=1&rel=0"></param><param name="allowFullScreen" value="true"></param><param name="allowscriptaccess" value="always"></param><embed src="http://www.youtube.com/v/hnMzkxPUIyc&hl=en_US&fs=1&rel=0" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="532" height="320"></embed></object>
 
@@ -52,6 +52,9 @@ You can easily change this by going into the WordPress-to-Lead admin panel and, 
 Of course you can! Go into the WordPress-to-Lead admin panel and, under Form Settings, change the text from the default "Submit" to whatever you'd like it to be!
 
 == Changelog ==
+
+= 1.0.1 =
+* Added escaping around several fields to prevent XSS vulnerabilities.
 
 = 1.0 =
 * Initial release.

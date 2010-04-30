@@ -4,7 +4,7 @@ Plugin Name: WordPress-to-Lead for Salesforce CRM
 Plugin URI: http://www.salesforce.com/form/signup/wordpress-to-lead.jsp?d=70130000000F4Mw
 Description: Easily embed a contactform into your posts, pages or your sidebar, and capture the entries straight into Salesforce CRM!
 Author: Joost de Valk - OrangeValley
-Version: 1.0
+Version: 1.0.1
 Author URI: http://www.orangevalley.nl/
 */
 
@@ -149,7 +149,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 							</form>
 							<?php } else if ($_GET['tab'] == 'css') { ?>
 							<p><a href="<?php echo $this->plugin_options_url(); ?>">&laquo; Back to config page.</a></p>
-							<p>If you don't want the inline styling this plugins uses, but add the CSS for the form to your own theme's CSS, you can start by just copying the proper CSS below into your CSS file. Just copy the correct text, and then you can usually find &amp; edit your CSS file <a href="http://www.altha.nl/dev/sf/wp-admin/theme-editor.php?file=/themes/twentyten/style.css&amp;theme=<?php echo urlencode(get_current_theme()); ?>&amp;dir=style">here</a>.</p>
+							<p>If you don't want the inline styling this plugins uses, but add the CSS for the form to your own theme's CSS, you can start by just copying the proper CSS below into your CSS file. Just copy the correct text, and then you can usually find &amp; edit your CSS file <a href="<?php echo admin_url('theme-editor.php'); ?>?file=<?php echo str_replace(WP_CONTENT_DIR,'',get_stylesheet_directory()); ?>/style.css&amp;theme=<?php echo urlencode(get_current_theme()); ?>&amp;dir=style">here</a>.</p>
 							<div style="width:260px;margin:0 10px 0 0;float:left;">
 								<div id="normalcss" class="postbox">
 									<div class="handlediv" title="Click to toggle"><br /></div>
@@ -358,13 +358,13 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 			continue;
 		$val 	= '';
 		if (isset($_POST[$id]))
-			$val	= strip_tags(stripslashes($_POST[$id]));
+			$val	= esc_attr(strip_tags(stripslashes($_POST[$id])));
 
 		$error 	= ' ';
 		if ($input['error']) 
 			$error 	= ' error ';
 			
-		$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.stripslashes($input['label']).':';
+		$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label'])).':';
 		if ($input['required'])
 			$content .= ' *';
 		$content .= '</label>'."\n";
@@ -377,12 +377,12 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 	$submit = stripslashes($options['submitbutton']);
 	if (empty($submit))
 		$submit = "Submit";
-	$content .= "\t".'<input type="submit" name="w2lsubmit" class="w2linput submit" value="'.$submit.'"/>'."\n";
+	$content .= "\t".'<input type="submit" name="w2lsubmit" class="w2linput submit" value="'.esc_attr($submit).'"/>'."\n";
 	$content .= '</form>'."\n";
 
 	$reqtext = stripslashes($options['requiredfieldstext']);
 	if (!empty($reqtext))
-		$content .= '<p id="requiredfieldsmsg"><sup>*</sup>'.$reqtext.'</p>';
+		$content .= '<p id="requiredfieldsmsg"><sup>*</sup>'.esc_html($reqtext).'</p>';
 	$content .= '<div id="salesforce"><small>Powered by <a href="http://www.salesforce.com/">Salesforce CRM</a></small></div>';
 	return $content;
 }
@@ -432,9 +432,9 @@ function salesforce_form_shortcode($is_sidebar = false) {
 		if (!$error) {
 			$result = submit_salesforce_form($post, $options);
 			if (!$result)
-				$content = '<strong>'.stripslashes($options['sferrormsg']).'</strong>';			
+				$content = '<strong>'.esc_html(stripslashes($options['sferrormsg'])).'</strong>';			
 			else
-				$content = '<strong>'.stripslashes($options['successmsg']).'</strong>';
+				$content = '<strong>'.esc_html(stripslashes($options['successmsg'])).'</strong>';
 		} else {
 			$content = $options['errormsg'];
 			$content = salesforce_form($options, $is_sidebar, $content);
