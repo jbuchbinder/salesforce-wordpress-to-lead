@@ -4,7 +4,7 @@ Plugin Name: WordPress-to-Lead for Salesforce CRM
 Plugin URI: http://www.salesforce.com/form/signup/wordpress-to-lead.jsp?d=70130000000F4Mw
 Description: Easily embed a contactform into your posts, pages or your sidebar, and capture the entries straight into Salesforce CRM!
 Author: Joost de Valk - OrangeValley
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://www.orangevalley.nl/
 */
 
@@ -425,6 +425,9 @@ function salesforce_form_shortcode($is_sidebar = false) {
 			if ($input['required'] && empty($_POST[$id])) {
 				$options['inputs'][$id]['error'] = true;
 				$error = true;
+			} else if ($id = 'email' && $input['required'] && !is_email($_POST[$id]) ) {
+				$error = true;
+				$emailerror = true;
 			} else {
 				$post[$id] = trim(strip_tags(stripslashes($_POST[$id])));
 			}
@@ -436,8 +439,10 @@ function salesforce_form_shortcode($is_sidebar = false) {
 			else
 				$content = '<strong>'.esc_html(stripslashes($options['successmsg'])).'</strong>';
 		} else {
-			$content = $options['errormsg'];
-			$content = salesforce_form($options, $is_sidebar, $content);
+			$errormsg = esc_html( stripslashes($options['errormsg']) ) ;
+			if ($emailerror)
+				$errormsg .= '<br/>The email address you entered is not a valid email address.';
+			$content = salesforce_form($options, $is_sidebar, $errormsg);
 		}
 	} else {
 		$content = salesforce_form($options, $is_sidebar);
