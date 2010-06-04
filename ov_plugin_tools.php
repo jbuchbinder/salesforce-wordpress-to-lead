@@ -89,7 +89,7 @@ if (!class_exists('OV_Plugin_Admin')) {
 		 */
 		function textinput($id, $label) {
 			$options = get_option($this->optionname);
-			return '<label for="'.$id.'">'.$label.':</label><br/><input size="45" type="text" id="'.$id.'" name="'.$id.'" value="'.stripslashes($options[$id]).'"/><br/><br/>';
+			return '<label for="'.$id.'">'.$label.':</label><br/><input size="45" type="text" id="'.$id.'" name="'.$id.'" value="'.htmlentities(stripslashes($options[$id])).'"/><br/><br/>';
 		}
 
 		/**
