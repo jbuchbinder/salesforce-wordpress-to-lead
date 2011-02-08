@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Backend Class for use in all OrangeValley plugins
+ * Backend Class for use in all Yoast plugins
  * Version 0.2
  */
 
-if (!class_exists('OV_Plugin_Admin')) {
-	class OV_Plugin_Admin {
+if (!class_exists('Yoast_Plugin_Admin')) {
+	class Yoast_Plugin_Admin {
 
 		var $hook 		= '';
 		var $filename	= '';
@@ -81,7 +81,8 @@ if (!class_exists('OV_Plugin_Admin')) {
 		 */
 		function checkbox($id, $label) {
 			$options = get_option($this->optionname);
-			return '<input type="checkbox" id="'.$id.'" name="'.$id.'"'. checked($options[$id],true,false).'/> <label for="'.$id.'">'.$label.'</label><br/>';
+			$val = ( isset( $options[$id] ) ) ? $options[$id] : false;
+			return '<input type="checkbox" id="'.$id.'" name="'.$id.'"'. checked( $val, true, false).'/> <label for="'.$id.'">'.$label.'</label><br/>';
 		}
 		
 		/**
@@ -89,7 +90,8 @@ if (!class_exists('OV_Plugin_Admin')) {
 		 */
 		function textinput($id, $label) {
 			$options = get_option($this->optionname);
-			return '<label for="'.$id.'">'.$label.':</label><br/><input size="45" type="text" id="'.$id.'" name="'.$id.'" value="'.htmlentities(stripslashes($options[$id])).'"/><br/><br/>';
+			$val = isset( $options[$id] ) ? htmlentities( stripslashes( $options[$id] ) ) : '';
+			return '<label for="'.$id.'">'.$label.':</label><br/><input size="45" type="text" id="'.$id.'" name="'.$id.'" value="'.$val.'"/><br/><br/>';
 		}
 
 		/**

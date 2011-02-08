@@ -3,16 +3,19 @@
 Plugin Name: WordPress-to-Lead for Salesforce CRM
 Plugin URI: http://www.salesforce.com/form/signup/wordpress-to-lead.jsp?d=70130000000F4Mw
 Description: Easily embed a contactform into your posts, pages or your sidebar, and capture the entries straight into Salesforce CRM!
-Author: Joost de Valk - OrangeValley
-Version: 1.0.5
-Author URI: http://www.orangevalley.nl/
+Author: Joost de Valk
+Version: 1.1
+Author URI: http://yoast.com/
 */
+
+define('YST_RECAPTCHA_PUBLIC', ' 6LdAUsESAAAAALyfEoB5tuPsg2BxlY_hU5waKdf2');
+define('YST_RECAPTCHA_PRIVATE', ' 6LdAUsESAAAAAIQ33FktswKquNpJ-GBv71qi1jyq');
 
 if ( ! class_exists( 'Salesforce_Admin' ) ) {
 
-	require_once('ov_plugin_tools.php');
+	require_once('yst_plugin_tools.php');
 	
-	class Salesforce_Admin extends OV_Plugin_Admin {
+	class Salesforce_Admin extends Yoast_Plugin_Admin {
 
 		var $hook 		= 'salesforce-wordpress-to-lead';
 		var $filename	= 'salesforce/salesforce.php';
@@ -34,7 +37,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 				
 		function warning() {
 			$options  = get_option($this->optionname);
-			if (!isset($options['org_id']) || empty($options['org_id']))
+			if ( !isset($options['org_id']) || empty($options['org_id']) )
 				echo "<div id='message' class='error'><p><strong>Your WordPress-to-Lead  settings are not complete.</strong> You must <a href='".$this->plugin_options_url()."'>enter your Salesforce.com Organisation ID</a> for it to work.</p></div>";
 			
 		}
@@ -45,7 +48,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the WordPress-to-Lead options.', 'salesforce'));
 				check_admin_referer('salesforce-udpatesettings');
 				
-				foreach (array('usecss') as $option_name) {
+				foreach (array('usecss', 'recaptcha') as $option_name) {
 					if (isset($_POST[$option_name])) {
 						$options[$option_name] = true;
 					} else {
@@ -74,7 +77,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 				w2l_sksort($newinputs,'pos',true);
 				$options['inputs'] = $newinputs;
 								
-		        foreach (array('successmsg','errormsg','sferrormsg','org_id','source','submitbutton') as $option_name) {
+		        foreach (array('successmsg','errormsg','sferrormsg','org_id','source','submitbutton','recaptcha_style') as $option_name) {
 					if (isset($_POST[$option_name])) {
 						$options[$option_name] = $_POST[$option_name];
 					}
@@ -109,9 +112,17 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content .= '<small>'.__('To find your Organisation ID, in your Salesforce.com account, go to Setup &raquo; Company Profile &raquo; Company Information','salesforce').'</small><br/><br/><br/>';
 									$content .= $this->textinput('source',__('Lead Source to display in Salesforce.com'));
 									$this->postbox('sfsettings',__('Salesforce.com Settings', 'salesforce'),$content); 
-
+									
 									$content = $this->textinput('submitbutton',__('Submit button text', 'salesforce') );
-									$content .= $this->textinput('requiredfieldstext',__('Required fields text', 'salesforce') );
+									$content .= $this->textinput( 'requiredfieldstext', __('Required fields text', 'salesforce') );
+									$content .= $this->checkbox( 'recaptcha', __('Use a Captcha?', 'salesforce') ).'<br/>';
+									$content .= '<label for="recaptcha_style">'.__('Color of Captcha').':</label>
+												<select name="recaptcha_style" id="recaptcha_style">
+													<option '.selected($options['recaptcha_style'], 'red').' value="red">'.__('Red (default)','salesforce').'</option>
+													<option '.selected($options['recaptcha_style'], 'white').' value="white">'.__('White','salesforce').'</option>
+													<option '.selected($options['recaptcha_style'], 'blackglass').' value="blackglass">'.__('Black','salesforce').'</option>
+													<option '.selected($options['recaptcha_style'], 'clean').' value="clean">'.__('Clean','salesforce').'</option>
+												</select><br/><br/>';
 									$content .= $this->checkbox('usecss',__('Use Form CSS?', 'salesforce') );
 									$content .= '<br/><small><a href="'.$this->plugin_options_url().'&amp;tab=css">'.__('Read how to copy the CSS to your own CSS file').'</a></small>';
 									$this->postbox('formsettings',__('Form Settings', 'salesforce'),$content); 
@@ -321,9 +332,10 @@ function w2l_sksort(&$array, $subkey="id", $sort_ascending=false) {
 }
 
 
-function salesforce_form($options, $is_sidebar = false, $content = '') {
+function salesforce_form($options, $is_sidebar = false, $content = '', $recaperror = null) {
 	if (!empty($content))
 		$content = wpautop('<strong>'.$content.'</strong>');
+		
 	if ($options['usecss'] && !$is_sidebar) {
 		$content .= '<style type="text/css">
 		form.w2llead{text-align:left;clear:both;}
@@ -353,6 +365,8 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 	if ($is_sidebar)
 		$sidebar = ' sidebar';
 	$content .= "\n".'<form class="w2llead'.$sidebar.'" method="post">'."\n";
+	$i = 1;
+	$ti = '';
 	foreach ($options['inputs'] as $id => $input) {
 		if (!$input['show'])
 			continue;
@@ -361,23 +375,50 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 			$val	= esc_attr(strip_tags(stripslashes($_POST[$id])));
 
 		$error 	= ' ';
-		if ($input['error']) 
+		if ( isset($input['error']) && $input['error']) 
 			$error 	= ' error ';
 			
 		$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label'])).':';
 		if ($input['required'])
 			$content .= ' *';
 		$content .= '</label>'."\n";
+		
+		if ( !$is_sidebar ) {
+			$ti = 'tabindex="'.$i.'"';
+			$i++;
+		}
 		if ($input['type'] == 'text') {			
-			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"/><br/>'."\n\n";
+			$content .= "\t".'<input value="'.$val.'" '.$ti.' id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"/><br/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
-			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'">'.$val.'</textarea><br/>'."\n\n";
+			$content .= "\t".'<br/>'."\n\t".'<textarea '.$ti.' id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'">'.$val.'</textarea><br/>'."\n\n";
 		}
 	}
+
+	if ( $options['recaptcha'] ) {
+		require_once plugin_dir_path(__FILE__).'recaptchalib.php';
+		$ssl = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] == "on" ) ? true : false;
+		$content .= recaptcha_get_html( YST_RECAPTCHA_PUBLIC, $recaperror, $ssl );
+		
+		// Script needs to be echoed before the form tag, so let's do that straight away.
+		?>
+		<script type="text/javascript">
+		var RecaptchaOptions = {
+			theme : '<?php echo $options['recaptcha_style']; ?>',
+			lang : '<?php echo substr( get_bloginfo('language'), 0, 2 ); ?>',
+			tabindex : <?php echo $i; $i++; ?>
+		};
+		</script>
+		<?php
+	}
+	
 	$submit = stripslashes($options['submitbutton']);
 	if (empty($submit))
 		$submit = "Submit";
-	$content .= "\t".'<input type="submit" name="w2lsubmit" class="w2linput submit" value="'.esc_attr($submit).'"/>'."\n";
+
+	if ( !$is_sidebar )
+		$ti = 'tabindex="'.$i.'"';
+		
+	$content .= "\t".'<input type="submit" '.$ti.' name="w2lsubmit" class="w2linput submit" value="'.esc_attr($submit).'"/>'."\n";
 	$content .= '</form>'."\n";
 
 	$reqtext = stripslashes($options['requiredfieldstext']);
@@ -389,7 +430,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 
 function submit_salesforce_form($post, $options) {
 	global $wp_version;
-	if (!isset($options['org_id']) || empty($options['org_id']))
+	if ( !isset($options['org_id']) || empty($options['org_id']) )
 		return false;
 
 	$post['oid'] 			= $options['org_id'];
@@ -415,12 +456,26 @@ function submit_salesforce_form($post, $options) {
 
 function salesforce_form_shortcode($is_sidebar = false) {
 	$options = get_option("salesforce");
+	
 	if (!is_array($options))
 		salesforce_default_settings();
 
 	if (isset($_POST['w2lsubmit'])) {
-		$error = false;
+		$error 		= false;
+		$emailerror = false;
+		$recaperror = null;
+		
 		$post = array();
+		
+		if ( isset( $options['recaptcha'] ) && $options['recaptcha'] ) {
+			require_once plugin_dir_path(__FILE__).'recaptchalib.php';
+			$resp = recaptcha_check_answer( YST_RECAPTCHA_PRIVATE, $_SERVER["REMOTE_ADDR"], $_POST["recaptcha_challenge_field"], $_POST["recaptcha_response_field"]);
+			if ( !$resp->is_valid ) {
+				$error 			= true;
+				$recaperror	= $resp->error;
+			}
+		}
+		
 		foreach ($options['inputs'] as $id => $input) {
 			if ($input['required'] && empty($_POST[$id])) {
 				$options['inputs'][$id]['error'] = true;
@@ -429,7 +484,8 @@ function salesforce_form_shortcode($is_sidebar = false) {
 				$error = true;
 				$emailerror = true;
 			} else {
-				$post[$id] = trim(strip_tags(stripslashes($_POST[$id])));
+				if ( isset( $_POST[$id] ) )
+					$post[$id] = trim( strip_tags( stripslashes( $_POST[$id] ) ) );
 			}
 		}
 		if (!$error) {
@@ -440,9 +496,9 @@ function salesforce_form_shortcode($is_sidebar = false) {
 				$content = '<strong>'.esc_html(stripslashes($options['successmsg'])).'</strong>';
 		} else {
 			$errormsg = esc_html( stripslashes($options['errormsg']) ) ;
-			if ($emailerror)
+			if ( $emailerror )
 				$errormsg .= '<br/>The email address you entered is not a valid email address.';
-			$content = salesforce_form($options, $is_sidebar, $errormsg);
+			$content = salesforce_form($options, $is_sidebar, $errormsg, $recaperror);
 		}
 	} else {
 		$content = salesforce_form($options, $is_sidebar);
@@ -505,5 +561,3 @@ function salesforce_widget_func() {
 	register_widget( 'Salesforce_WordPress_to_Lead_Widgets' );
 }
 add_action( 'widgets_init', 'salesforce_widget_func' );
-
-?>
