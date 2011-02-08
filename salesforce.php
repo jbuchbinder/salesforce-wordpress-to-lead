@@ -467,17 +467,8 @@ function salesforce_form_shortcode($is_sidebar = false) {
 		
 		$post = array();
 		
-		if ( isset( $options['recaptcha'] ) && $options['recaptcha'] ) {
-			require_once plugin_dir_path(__FILE__).'recaptchalib.php';
-			$resp = recaptcha_check_answer( YST_RECAPTCHA_PRIVATE, $_SERVER["REMOTE_ADDR"], $_POST["recaptcha_challenge_field"], $_POST["recaptcha_response_field"]);
-			if ( !$resp->is_valid ) {
-				$error 			= true;
-				$recaperror	= $resp->error;
-			}
-		}
-		
-		foreach ($options['inputs'] as $id => $input) {
-			if ($input['required'] && empty($_POST[$id])) {
+		foreach ( $options['inputs'] as $id => $input ) {
+			if ( $input['required'] && empty( $_POST[$id] ) ) {
 				$options['inputs'][$id]['error'] = true;
 				$error = true;
 			} else if ($id == 'email' && $input['required'] && !is_email($_POST[$id]) ) {
@@ -488,7 +479,17 @@ function salesforce_form_shortcode($is_sidebar = false) {
 					$post[$id] = trim( strip_tags( stripslashes( $_POST[$id] ) ) );
 			}
 		}
-		if (!$error) {
+
+		if ( !$error && isset( $options['recaptcha'] ) && $options['recaptcha'] ) {
+			require_once plugin_dir_path(__FILE__).'recaptchalib.php';
+			$resp = recaptcha_check_answer( YST_RECAPTCHA_PRIVATE, $_SERVER["REMOTE_ADDR"], $_POST["recaptcha_challenge_field"], $_POST["recaptcha_response_field"] );
+			if ( !$resp->is_valid ) {
+				$error 		= true;
+				$recaperror	= $resp->error;
+			}
+		}
+		
+		if ( !$error ) {
 			$result = submit_salesforce_form($post, $options);
 			if (!$result)
 				$content = '<strong>'.esc_html(stripslashes($options['sferrormsg'])).'</strong>';			
