@@ -54,11 +54,6 @@ Of course you can! Go into the WordPress-to-Lead admin panel and, under Form Set
 
 == Changelog ==
 
-= 1.1 =
-* Added Recaptcha captcha option for forms.
-* Added tabindex to forms.
-* Fixed several notices in both frontend and backend.
-
 = 1.0.5 =
 * Fix in backend security, preventing XSS hack in the backend.
 
