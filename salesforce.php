@@ -374,6 +374,10 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'">'.$val.'</textarea><br/>'."\n\n";
 		}
 	}
+
+	//spam honeypot
+	$content .= "\t".'<input type="text" name="w2lshp" class="w2linput" value="GG" style="display: none;"/>'."\n";
+
 	$submit = stripslashes($options['submitbutton']);
 	if (empty($submit))
 		$submit = "Submit";
@@ -391,6 +395,11 @@ function submit_salesforce_form($post, $options) {
 	global $wp_version;
 	if (!isset($options['org_id']) || empty($options['org_id']))
 		return false;
+
+	if( !empty($_POST['w2lshp']) )
+		return false;
+
+	//print_r($_POST); //DEBUG
 
 	$post['oid'] 			= $options['org_id'];
 	$post['lead_source']	= $options['source'];
