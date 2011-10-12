@@ -390,6 +390,9 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 		}
 	}
 
+	//send me a copy
+	$content .= "\t".'<input type="checkbox" name="w2lcc" class="w2linput" value="1"/>Send me a copy'."<br/>\n";
+
 	//spam honeypot
 	$content .= "\t".'<input type="text" name="w2lshp" class="w2linput" value="" style="display: none;"/>'."\n";
 
@@ -425,7 +428,9 @@ function submit_salesforce_form($post, $options) {
 	if( !empty($_POST['w2lshp']) )
 		return false;
 
-	print_r($_POST); //DEBUG
+	//print_r($_POST); //DEBUG
+
+
 
 	$post['oid'] 			= $options['org_id'];
 	$post['lead_source']	= $options['source'];
@@ -445,10 +450,39 @@ function submit_salesforce_form($post, $options) {
 	if( is_wp_error($result) )
 		return false;
 	
-	if ($result['response']['code'] == 200)
+	if ($result['response']['code'] == 200){
+
+		if( $_POST['w2lcc'] == 1 )
+			salesforce_cc_user($post, $options);
+		
 		return true;
-	else
+	}else{
 		return false;
+	}
+}
+
+function salesforce_cc_user($post, $options){
+	
+	$headers = 'From: '.get_bloginfo('name').' <' . get_option('admin_email') . ">\r\n";
+
+	//remove hidden fields
+	foreach ($options['inputs'] as $id => $input) {
+		if( $input['type'] == 'hidden' )
+			unset( $post[$id] );
+	}
+	
+	unset($post['oid']);
+	unset($post['lead_source']);
+	unset($post['debug']);
+	
+	//format message
+	foreach($post as $name=>$value){
+		if( !empty($value) )
+			$message .= $options['inputs'][$name]['label'].': '.$value."\r\n";
+	}
+
+	wp_mail( $_POST['email'], 'What should this say?', $message, $headers );
+
 }
 
 function salesforce_form_shortcode($is_sidebar = false) {
