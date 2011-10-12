@@ -481,7 +481,7 @@ function salesforce_cc_user($post, $options){
 			$message .= $options['inputs'][$name]['label'].': '.$value."\r\n";
 	}
 
-	wp_mail( $_POST['email'], 'What should this say?', $message, $headers );
+	wp_mail( $_POST['email'], 'Your submission', $message, $headers );
 
 }
 
