@@ -288,6 +288,7 @@ function salesforce_default_settings() {
 		'city'	 		=> array('type' => 'text', 'label' => 'City', 'show' => false, 'required' => false),
 		'state'	 		=> array('type' => 'text', 'label' => 'State', 'show' => false, 'required' => false),
 		'zip'	 		=> array('type' => 'text', 'label' => 'ZIP', 'show' => false, 'required' => false),
+		'country'	 	=> array('type' => 'text', 'label' => 'Country', 'show' => false, 'required' => false),
 		'Campaign_ID'	=> array('type' => 'hidden', 'label' => 'Campaign ID', 'show' => false, 'required' => false),
 	);
 	update_option('salesforce', $options);
@@ -487,7 +488,6 @@ function salesforce_form_shortcode($is_sidebar = false) {
 	return $content;
 }
 add_shortcode('salesforce', 'salesforce_form_shortcode');	
-add_shortcode('salesforce', 'salesforce_form_shortcode');	
 
 class Salesforce_WordPress_to_Lead_Widgets extends WP_Widget {
 
@@ -504,7 +504,7 @@ class Salesforce_WordPress_to_Lead_Widgets extends WP_Widget {
 		if ( $title ) {
 			echo $before_title . $title . $after_title;
 		}
-		if ( !empty($instance['desc']) ) {
+		if ( !empty($instance['desc']) && empty($_POST) ) {
 			echo '<p>' . $instance['desc'] . '</p>';
 		}
 		$is_sidebar = true;
