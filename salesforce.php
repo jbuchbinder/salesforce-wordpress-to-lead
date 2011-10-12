@@ -63,7 +63,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 							$newinputs[$id][$option_name] = false;
 						}
 					}	
-					foreach (array('type','label','pos') as $option_name) {
+					foreach (array('type','label','value','pos') as $option_name) {
 						if (isset($_POST[$id.'_'.$option_name])) {
 							$newinputs[$id][$option_name] = $_POST[$id.'_'.$option_name];
 							unset($_POST[$id.'_'.$option_name]);
@@ -119,10 +119,11 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content = '<style type="text/css">th{text-align:left;}</style><table>';
 									$content .= '<tr>'
 									.'<th width="15%">ID</th>'
-									.'<th width="10%">Show</th>'
+									.'<th width="10%">Enable</th>'
 									.'<th width="10%">Required</th>'
 									.'<th width="10%">Type</th>'
-									.'<th width="40%">Label</th>'
+									.'<th width="20%">Label</th>'
+									.'<th width="20%">Value</th>'
 									.'<th width="10%">Position</th>'
 									.'</tr>';
 									$i = 1;
@@ -136,8 +137,10 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 										$content .= '<td><select name="'.$id.'_type">';
 										$content .= '<option '.selected($input['type'],'text',false).'>text</option>';
 										$content .= '<option '.selected($input['type'],'textarea',false).'>textarea</option>';
+										$content .= '<option '.selected($input['type'],'hidden',false).'>hidden</option>';
 										$content .= '</select></td>';
-										$content .= '<td><input size="40" name="'.$id.'_label" type="text" value="'.$input['label'].'"/></td>';
+										$content .= '<td><input size="20" name="'.$id.'_label" type="text" value="'.$input['label'].'"/></td>';
+										$content .= '<td><input size="20" name="'.$id.'_value" type="text" value="'.$input['value'].'"/></td>';
 										$content .= '<td><input size="2" name="'.$id.'_pos" type="text" value="'.$input['pos'].'"/></td>';
 										$content .= '</tr>';
 										$i++;
@@ -285,6 +288,7 @@ function salesforce_default_settings() {
 		'city'	 		=> array('type' => 'text', 'label' => 'City', 'show' => false, 'required' => false),
 		'state'	 		=> array('type' => 'text', 'label' => 'State', 'show' => false, 'required' => false),
 		'zip'	 		=> array('type' => 'text', 'label' => 'ZIP', 'show' => false, 'required' => false),
+		'Campaign_ID'	=> array('type' => 'hidden', 'label' => 'Campaign ID', 'show' => false, 'required' => false),
 	);
 	update_option('salesforce', $options);
 	return $options;
@@ -357,26 +361,46 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 		if (!$input['show'])
 			continue;
 		$val 	= '';
-		if (isset($_POST[$id]))
+		if (isset($_POST[$id])){
 			$val	= esc_attr(strip_tags(stripslashes($_POST[$id])));
+		}else{
+			$val	= esc_attr(strip_tags(stripslashes($input['value'])));
+		}
 
 		$error 	= ' ';
 		if ($input['error']) 
 			$error 	= ' error ';
 			
-		$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label'])).':';
+		if($input['type'] != 'hidden')
+			$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label'])).':';
+		
 		if ($input['required'])
 			$content .= ' *';
-		$content .= '</label>'."\n";
+		
+		if($input['type'] != 'hidden')
+			$content .= '</label>'."\n";
+		
 		if ($input['type'] == 'text') {			
 			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"/><br/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
 			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'">'.$val.'</textarea><br/>'."\n\n";
+		} else if ($input['type'] == 'hidden') {
+			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.$val.'">'."\n\n";
 		}
 	}
 
 	//spam honeypot
-	$content .= "\t".'<input type="text" name="w2lshp" class="w2linput" value="GG" style="display: none;"/>'."\n";
+	$content .= "\t".'<input type="text" name="w2lshp" class="w2linput" value="" style="display: none;"/>'."\n";
+
+/*
+	if (true){
+	
+		require_once('lib/recaptchalib.php');
+		$publickey = "6LfJBskSAAAAADj6sHl2qHp66vYOb5VQDq5Fxrjm";
+		$content .= recaptcha_get_html( $publickey, null, is_ssl() );
+	
+	}
+*/
 
 	$submit = stripslashes($options['submitbutton']);
 	if (empty($submit))
@@ -396,10 +420,11 @@ function submit_salesforce_form($post, $options) {
 	if (!isset($options['org_id']) || empty($options['org_id']))
 		return false;
 
+	//spam honeypot
 	if( !empty($_POST['w2lshp']) )
 		return false;
 
-	//print_r($_POST); //DEBUG
+	print_r($_POST); //DEBUG
 
 	$post['oid'] 			= $options['org_id'];
 	$post['lead_source']	= $options['source'];
