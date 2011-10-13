@@ -285,6 +285,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 
 function salesforce_default_settings() {
 	$options = array();
+	$options['version'] 			= '2.0';
 	$options['successmsg'] 			= 'Success!';
 	$options['errormsg'] 			= 'There was an error, please fill all required fields.';
 	$options['requiredfieldstext'] 	= 'These fields are required.';
