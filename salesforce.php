@@ -45,7 +45,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 				if (!current_user_can('manage_options')) die(__('You cannot edit the WordPress-to-Lead options.', 'salesforce'));
 				check_admin_referer('salesforce-udpatesettings');
 				
-				foreach (array('usecss') as $option_name) {
+				foreach (array('usecss','showccuser','ccadmin') as $option_name) {
 					if (isset($_POST[$option_name])) {
 						$options[$option_name] = true;
 					} else {
@@ -74,7 +74,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 				w2l_sksort($newinputs,'pos',true);
 				$options['inputs'] = $newinputs;
 								
-		        foreach (array('successmsg','errormsg','sferrormsg','org_id','source','submitbutton') as $option_name) {
+		        foreach (array('successmsg','errormsg','sferrormsg','org_id','source','submitbutton','subject','ccusermsg') as $option_name) {
 					if (isset($_POST[$option_name])) {
 						$options[$option_name] = $_POST[$option_name];
 					}
@@ -99,7 +99,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 							<form action="" method="post" id="salesforce-conf">
 								<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('salesforce-udpatesettings'); } ?>
 								<input type="hidden" value="<?php echo $options['version']; ?>" name="version"/>
-								<?php 
+								<?php
 									$content = $this->textinput('successmsg',__('Success message after sending message', 'salesforce') );
 									$content .= $this->textinput('errormsg',__('Error message when not all form fields are filled', 'salesforce') );
 									$content .= $this->textinput('sferrormsg',__('Error message when Salesforce.com connection fails', 'salesforce') );
@@ -109,6 +109,15 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content .= '<small>'.__('To find your Organisation ID, in your Salesforce.com account, go to Setup &raquo; Company Profile &raquo; Company Information','salesforce').'</small><br/><br/><br/>';
 									$content .= $this->textinput('source',__('Lead Source to display in Salesforce.com'));
 									$this->postbox('sfsettings',__('Salesforce.com Settings', 'salesforce'),$content); 
+
+									$content = $this->checkbox('showccuser',__('Allow user to request a copy of their submission', 'salesforce') );
+									$content .= '<br/>';
+									$content .= $this->textinput('ccusermsg',__('Request a copy text', 'salesforce') );
+									$content .= $this->textinput('subject',__('Email subject', 'salesforce') );
+									$content .= '<small>'.__('Use %BLOG_NAME% to auto-insert the blog title into the subject','salesforce').'</small><br/><br/><br/>';
+
+									$content .= $this->checkbox('ccadmin',__('Send blog admin an email notification', 'salesforce') );
+									$this->postbox('sfsettings',__('Email Settings', 'salesforce'),$content); 
 
 									$content = $this->textinput('submitbutton',__('Submit button text', 'salesforce') );
 									$content .= $this->textinput('requiredfieldstext',__('Required fields text', 'salesforce') );
@@ -190,6 +199,15 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
   margin: 10px 0 0 0;
   clear: both;
   width: 150px;
+}
+.w2linput.checkbox{
+  height:18px;
+  margin:0px 0;
+}
+.w2llabel.checkbox{
+  clear:none;
+  height:18px;
+  margin: -8px 0 4px 4px;
 }
 #salesforce {
   margin: 3px 0 0 0;
@@ -273,6 +291,10 @@ function salesforce_default_settings() {
 	$options['sferrormsg'] 			= 'Failed to connect to Salesforce.com.';
 	$options['source'] 				= 'Lead form on '.get_bloginfo('name');
 	$options['submitbutton']	 	= 'Submit';
+	$options['subject']	 			= 'Thank you for contacting %BLOG_NAME%';
+	$options['showccuser'] 			= true;
+	$options['ccusermsg']			= 'Send me a copy';
+	$options['ccadmin']				= false;
 
 	$options['usecss']				= true;
 
@@ -338,6 +360,8 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 		.w2linput.text{width:50%;height:18px;margin:4px 0;}
 		.w2linput.textarea {clear:both;width:100%;height:75px;margin:10px 0;}
 		.w2linput.submit {float:none;margin:10px 0 0 0;clear:both;}
+		.w2linput.checkbox{height:18px;margin:0px 0;}
+		.w2llabel.checkbox{clear:none;height:18px; margin: -8px 0 4px 4px;}
 		#salesforce{margin:3px 0 0 0;color:#aaa;}
 		#salesforce a{color:#999;}
 		</style>';
@@ -391,8 +415,12 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 	}
 
 	//send me a copy
-	$content .= "\t".'<input type="checkbox" name="w2lcc" class="w2linput" value="1"/>Send me a copy'."<br/>\n";
-
+	if( $options['showccuser'] ){
+		$label = $options['ccusermsg'];
+		if( empty($label) ) $label = 'Send me a copy';
+		$content .= "\t\n\t".'<input type="checkbox" name="w2lcc" class="w2linput checkbox" value="1"/><label class="w2llabel checkbox">'.stripslashes($label)."</label><br/>\n";
+	}
+	
 	//spam honeypot
 	$content .= "\t".'<input type="text" name="w2lshp" class="w2linput" value="" style="display: none;"/>'."\n";
 
@@ -454,6 +482,10 @@ function submit_salesforce_form($post, $options) {
 
 		if( $_POST['w2lcc'] == 1 )
 			salesforce_cc_user($post, $options);
+
+		if( $options['ccadmin'] )
+			salesforce_cc_admin($post, $options);
+
 		
 		return true;
 	}else{
@@ -464,6 +496,9 @@ function submit_salesforce_form($post, $options) {
 function salesforce_cc_user($post, $options){
 	
 	$headers = 'From: '.get_bloginfo('name').' <' . get_option('admin_email') . ">\r\n";
+
+	$subject = str_replace('%BLOG_NAME%', get_bloginfo('name'), $options['subject']);
+	if( empty($subject) ) $subject = 'Thank you for contacting '.get_bloginfo('name');
 
 	//remove hidden fields
 	foreach ($options['inputs'] as $id => $input) {
@@ -481,7 +516,27 @@ function salesforce_cc_user($post, $options){
 			$message .= $options['inputs'][$name]['label'].': '.$value."\r\n";
 	}
 
-	wp_mail( $_POST['email'], 'Your submission', $message, $headers );
+	wp_mail( $_POST['email'], $subject, $message, $headers );
+
+}
+
+function salesforce_cc_admin($post, $options){
+	
+	$headers = 'From: '.get_bloginfo('name').' <' . get_option('admin_email') . ">\r\n";
+
+	$subject = 'Salesforce WP to Lead Submission';
+
+	unset($post['oid']);
+	unset($post['lead_source']);
+	unset($post['debug']);
+	
+	//format message
+	foreach($post as $name=>$value){
+		if( !empty($value) )
+			$message .= $options['inputs'][$name]['label'].': '.$value."\r\n";
+	}
+
+	wp_mail( get_option('admin_email'), $subject, $message, $headers );
 
 }
 
