@@ -18,7 +18,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 		var $filename	= 'salesforce/salesforce.php';
 		var $longname	= 'WordPress-to-Lead for Salesforce CRM Configuration';
 		var $shortname	= 'Salesforce.com';
-		var $optionname = 'salesforce';
+		var $optionname = 'salesforce2';
 		var $homepage	= 'http://www.salesforce.com/wordpress/';
 		var $ozhicon	= 'salesforce-16x16.png';
 		
@@ -39,52 +39,111 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 		}
 		
 		function config_page() {
+			
+			$options = get_option($this->optionname);
+			
 			if ( isset($_POST['submit']) ) {
-				$options  = get_option($this->optionname);
-				if (!current_user_can('manage_options')) die(__('You cannot edit the WordPress-to-Lead options.', 'salesforce'));
-				check_admin_referer('salesforce-udpatesettings');
 				
-				foreach (array('usecss','showccuser','ccadmin') as $option_name) {
-					if (isset($_POST[$option_name])) {
-						$options[$option_name] = true;
-					} else {
-						$options[$option_name] = false;
-					}
-				}
+				//die('<pre>'.print_r($_POST,true)); //DEBUG
 
-				$newinputs = array();
-				foreach ($options['inputs'] as $id => $input) {
-					foreach (array('show','required') as $option_name) {
-						if (isset($_POST[$id.'_'.$option_name])) {
-							$newinputs[$id][$option_name] = true;
-							unset($_POST[$id.'_'.$option_name]);
+				$form_id = (int) $_POST['form_id'];
+
+				if($_POST['mode'] == 'editform'){
+					
+					if(!isset($options['forms'][$form_id]))
+						$options['forms'][$form_id] = salesforce_default_form();
+
+					//Begin Save Form Data
+					$newinputs = array();
+					foreach ($options['forms'][$form_id]['inputs'] as $id => $input) {
+						foreach (array('show','required') as $option_name) {
+							if (isset($_POST['inputs'][$id.'_'.$option_name])) {
+								$newinputs[$id][$option_name] = true;
+								unset($_POST['inputs'][$id.'_'.$option_name]);
+							} else {
+								$newinputs[$id][$option_name] = false;
+							}
+						}
+						foreach (array('type','label','value','pos') as $option_name) {
+							if (isset($_POST['inputs'][$id.'_'.$option_name])) {
+								$newinputs[$id][$option_name] = $_POST['inputs'][$id.'_'.$option_name];
+								unset($_POST['inputs'][$id.'_'.$option_name]);
+							}
+						}	
+					}
+					
+					//add any new fields
+					foreach ($_POST['add_inputs'] as $key=>$input) {
+					
+						$id = $input['field_name'];
+					
+						if( !empty($id) ){
+							foreach (array('show','required') as $option_name) {
+								if (isset($_POST['add_inputs'][$key][$option_name])) {
+									$newinputs[$id][$option_name] = true;
+									unset($_POST['add_inputs'][$key][$option_name]);
+								} else {
+									$newinputs[$id][$option_name] = false;
+								}
+							}
+							
+							foreach (array('type','label','value','pos') as $option_name) {
+								if (isset($_POST['add_inputs'][$key][$option_name])) {
+									$newinputs[$id][$option_name] = $_POST['add_inputs'][$key][$option_name];
+									unset($_POST['add_inputs'][$key][$option_name]);
+								}
+							}
+						}
+					}
+					
+					w2l_sksort($newinputs,'pos',true);
+					$options['forms'][$form_id]['inputs'] = $newinputs; //TODO
+					
+					foreach (array('form_name','source','returl') as $option_name) {
+						if (isset($_POST[$option_name])) {
+							$options['forms'][$form_id][$option_name] = $_POST[$option_name];
+						}
+					}
+					
+					//End Save Form Data
+				
+				}elseif($_POST['mode'] == 'delete'){
+				
+					if( isset( $_POST['form_id'] ) && $_POST['form_id'] != 1 )
+						unset( $options['forms'][$_POST['form_id']] );
+				
+				}else{
+				
+					//Save general settings
+									
+					$options  = get_option($this->optionname);
+					if (!current_user_can('manage_options')) die(__('You cannot edit the WordPress-to-Lead options.', 'salesforce'));
+					check_admin_referer('salesforce-udpatesettings');
+					
+					foreach (array('usecss','showccuser','ccadmin') as $option_name) {
+						if (isset($_POST[$option_name])) {
+							$options[$option_name] = true;
 						} else {
-							$newinputs[$id][$option_name] = false;
+							$options[$option_name] = false;
 						}
-					}	
-					foreach (array('type','label','value','pos') as $option_name) {
-						if (isset($_POST[$id.'_'.$option_name])) {
-							$newinputs[$id][$option_name] = $_POST[$id.'_'.$option_name];
-							unset($_POST[$id.'_'.$option_name]);
+					}
+					
+					
+			        foreach (array('successmsg','errormsg','sferrormsg','org_id','submitbutton','subject','ccusermsg') as $option_name) {
+						if (isset($_POST[$option_name])) {
+							$options[$option_name] = $_POST[$option_name];
 						}
-					}	
-				}
-				
-				w2l_sksort($newinputs,'pos',true);
-				$options['inputs'] = $newinputs;
-								
-		        foreach (array('successmsg','errormsg','sferrormsg','org_id','source','submitbutton','subject','ccusermsg') as $option_name) {
-					if (isset($_POST[$option_name])) {
-						$options[$option_name] = $_POST[$option_name];
 					}
 				}
-
+				
+				//save changes to DB
 				update_option($this->optionname, $options);
+			
 			}
 			
-			$options  = get_option($this->optionname);
+			//$options = get_option($this->optionname);
 
-			if (!is_array($options['inputs']))
+			if (empty($options))
 				$options = salesforce_default_settings();
 			
 			?>
@@ -99,6 +158,9 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 								<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('salesforce-udpatesettings'); } ?>
 								<input type="hidden" value="<?php echo $options['version']; ?>" name="version"/>
 								<?php
+								
+									//$this->postbox('options','Options','<pre>'.print_r($options,true).'</pre>'); //DEBUG
+								
 									$content = $this->textinput('successmsg',__('Success message after sending message', 'salesforce') );
 									$content .= $this->textinput('errormsg',__('Error message when not all form fields are filled', 'salesforce') );
 									$content .= $this->textinput('sferrormsg',__('Error message when Salesforce.com connection fails', 'salesforce') );
@@ -106,7 +168,6 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									
 									$content = $this->textinput('org_id',__('Your Salesforce.com organisation ID','salesforce'));
 									$content .= '<small>'.__('To find your Organisation ID, in your Salesforce.com account, go to Setup &raquo; Company Profile &raquo; Company Information','salesforce').'</small><br/><br/><br/>';
-									$content .= $this->textinput('source',__('Lead Source to display in Salesforce.com'));
 									$this->postbox('sfsettings',__('Salesforce.com Settings', 'salesforce'),$content); 
 
 									$content = $this->checkbox('showccuser',__('Allow user to request a copy of their submission', 'salesforce') );
@@ -123,43 +184,27 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content .= $this->checkbox('usecss',__('Use Form CSS?', 'salesforce') );
 									$content .= '<br/><small><a href="'.$this->plugin_options_url().'&amp;tab=css">'.__('Read how to copy the CSS to your own CSS file').'</a></small>';
 									$this->postbox('formsettings',__('Form Settings', 'salesforce'),$content); 
-																		
-									$content = '<style type="text/css">th{text-align:left;}</style><table>';
-									$content .= '<tr>'
-									.'<th width="15%">'.__('ID','salesforce').'</th>'
-									.'<th width="10%">'.__('Enable','salesforce').'</th>'
-									.'<th width="10%">'.__('Required','salesforce').'</th>'
-									.'<th width="10%">'.__('Type','salesforce').'</th>'
-									.'<th width="20%">'.__('Label','salesforce').'</th>'
-									.'<th width="20%">'.__('Value','salesforce').'</th>'
-									.'<th width="10%">'.__('Position','salesforce').'</th>'
-									.'</tr>';
-									$i = 1;
-									foreach ($options['inputs'] as $id => $input) {
-										if (empty($input['pos']))
-											$input['pos'] = $i;
-										$content .= '<tr>';
-										$content .= '<th>'.$id.'</th>';
-										$content .= '<td><input type="checkbox" name="'.$id.'_show" '.checked($input['show'],true,false).'/></td>';
-										$content .= '<td><input type="checkbox" name="'.$id.'_required" '.checked($input['required'],true,false).'/></td>';
-										$content .= '<td><select name="'.$id.'_type">';
-										$content .= '<option '.selected($input['type'],'text',false).'>text</option>';
-										$content .= '<option '.selected($input['type'],'textarea',false).'>textarea</option>';
-										$content .= '<option '.selected($input['type'],'hidden',false).'>hidden</option>';
-										$content .= '</select></td>';
-										$content .= '<td><input size="20" name="'.$id.'_label" type="text" value="'.$input['label'].'"/></td>';
-										$content .= '<td><input size="20" name="'.$id.'_value" type="text" value="'.$input['value'].'"/></td>';
-										$content .= '<td><input size="2" name="'.$id.'_pos" type="text" value="'.$input['pos'].'"/></td>';
-										$content .= '</tr>';
-										$i++;
+									
+									
+									$content = '<table border="1">';
+									$content .= '<tr><th>ID</th><th>Name</th></tr>';		
+									foreach($options['forms'] as $key=>$form){
+										
+										$content .= '<tr><td>'.$key.'</td><td><a href="'.$this->plugin_options_url().'&tab=form&id='.$key.'">'.$form['form_name'].'</a><td></tr>';
+									
 									}
-									$content .= '</table>';
-									$this->postbox('sffields',__('Form Fields', 'salesforce'),$content); 
+									$content .= '</table>';	
+									
+									$content .= '<p><a href="'.$this->plugin_options_url().'&tab=form">'.__('Add a new form','salesforce').' &raquo;</a></p>';			
+
+										$this->postbox('sfforms',__('Forms', 'salesforce'),$content); 
+
+
 								?>
 								<div class="submit"><input type="submit" class="button-primary" name="submit" value="<?php _e("Save WordPress-to-Lead Settings", 'salesforce'); ?>" /></div>
 							</form>
 							<?php } else if ($_GET['tab'] == 'css') { ?>
-							<p><a href="<?php echo $this->plugin_options_url(); ?>">&laquo; <?php echo __('Back to config page.','salesforce'); ?></a></p>
+							<?php echo '<p>'.salesforce_back_link($this->plugin_options_url()).'</p>'; ?>
 							<p><?php echo __("If you don't want the inline styling this plugins uses, but add the CSS for the form to your own theme's CSS, you can start by just copying the proper CSS below into your CSS file. Just copy the correct text, and then you can usually find &amp; edit your CSS file",'salesforce'); ?> <a href="<?php echo admin_url('theme-editor.php'); ?>?file=<?php echo str_replace(WP_CONTENT_DIR,'',get_stylesheet_directory()); ?>/style.css&amp;theme=<?php echo urlencode(get_current_theme()); ?>&amp;dir=style"><?php echo __('here','salesforce');?></a>.</p>
 							<div style="width:260px;margin:0 10px 0 0;float:left;">
 								<div id="normalcss" class="postbox">
@@ -258,6 +303,154 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
   color: #999;
 }</pre>
 </div></div></div>
+
+							<?php } else if ($_GET['tab'] == 'form') { ?>
+
+
+<?php
+if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
+
+	echo '<div id="message" class="updated"><p>' . __('Deleted Form #','salesforce') . $form_id . '</p></div>';
+
+}else{
+
+	if(!isset($form_id) && isset($_GET['id']))
+		$form_id = (int) $_GET['id'];
+	
+	if( isset($_POST['form_id']) )
+		$form_id = (int) $_POST['form_id'];
+
+	if( !isset($form_id) || $form_id == 0 ){
+		//generate a new default form
+		end( $options['forms'] );
+		$form_id = key( $options['forms'] ) + 1;
+		$options['forms'][$form_id] = salesforce_default_form();
+	}
+
+	//check for deleted forms
+	if( $form_id && !isset($options['forms'][$form_id]) ){
+		echo '<div id="message" class="error"><p>' . __('This form could not be found.','salesforce') . '</p></div>';
+	}else{
+
+		if(isset($_POST['submit']) && $_POST['submit'])
+			echo '<div id="message" class="updated"><p>' . __('Form settings updated.','salesforce') . '</p></div>';
+	?>
+
+							<form action="" method="post" id="salesforce-conf">
+								<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('salesforce-udpatesettings'); } ?>
+								<input type="hidden" value="<?php echo $options['version']; ?>" name="version"/>
+								<input type="hidden" value="editform" name="mode"/>								
+								<?php
+								
+									//$this->postbox('options','Options','<pre>'.print_r($options,true).'</pre>'); //DEBUG
+
+										$content = '<p>';
+										$content .= '<input type="text" name="form_name" value="'.esc_html($options['forms'][$form_id]['form_name']).'">';
+										//$content .= '<br/><small>'.__('').'</small>';
+										$content .= '</p>';
+										
+										$this->postbox('sfformtitle',__('Form Name', 'salesforce'),$content);
+
+										$content = '<style type="text/css">th{text-align:left;}</style><table id="salesforce_form_editor">';
+										$content .= '<tr>'
+										.'<th width="15%">'.__('Field','salesforce').'</th>'
+										.'<th width="10%">'.__('Enable','salesforce').'</th>'
+										.'<th width="10%">'.__('Required','salesforce').'</th>'
+										.'<th width="10%">'.__('Type','salesforce').'</th>'
+										.'<th width="20%">'.__('Label','salesforce').'</th>'
+										.'<th width="20%">'.__('Value','salesforce').'</th>'
+										.'<th width="10%">'.__('Position','salesforce').'</th>'
+										.'</tr>';
+										$i = 1;
+										foreach ($options['forms'][$form_id]['inputs'] as $field => $input) {
+											if (empty($input['pos']))
+												$input['pos'] = $i;
+											$content .= '<tr>';
+											$content .= '<th>'.$field.'</th>';
+											$content .= '<td><input type="checkbox" name="inputs['.$field.'_show]" '.checked($input['show'],true,false).'/></td>';
+											$content .= '<td><input type="checkbox" name="inputs['.$field.'_required]" '.checked($input['required'],true,false).'/></td>';
+											$content .= '<td><select name="inputs['.$field.'_type]">';
+											$content .= '<option '.selected($input['type'],'text',false).'>text</option>';
+											$content .= '<option '.selected($input['type'],'textarea',false).'>textarea</option>';
+											$content .= '<option '.selected($input['type'],'hidden',false).'>hidden</option>';
+											$content .= '</select></td>';
+											$content .= '<td><input size="20" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
+											
+											$content .= '<td><input size="20" name="inputs['.$field.'_value]" type="text" value="';
+											if( isset($input['value']) ) $content .= esc_html($input['value']);
+											$content .= '"/></td>';
+											$content .= '<td><input size="2" name="inputs['.$field.'_pos]" type="text" value="'.esc_html($input['pos']).'"/></td>';
+											$content .= '</tr>';
+											$i++;
+										}
+										
+										$content .= '</table>';
+										
+										?>
+<script>
+
+var pos = <?php echo $i; ?>;
+var i = 1;
+function salesforce_add_field(){
+	
+	var row = '<tr>';
+	row += '<td><input type="text" size="10" name="add_inputs['+i+'][field_name]"></td>';
+	row += '<td><input type="checkbox" name="add_inputs['+i+'][show]"></td>';
+	row += '<td><input type="checkbox" name="add_inputs['+i+'][required]"></td>';
+	row += '<td><select name="add_inputs['+i+'][type]"><option>text</option><option>textarea</option><option>hidden</option></select></td>';
+	row += '<td><input type="text" name="add_inputs['+i+'][label]"></td>';
+	row += '<td><input type="text" name="add_inputs['+i+'][value]"></td>';
+	row += '<td><input type="text" size="2" name="add_inputs['+i+'][pos]" value="'+pos+'"></td>';
+	row += '</tr>';
+	
+	jQuery('#salesforce_form_editor tbody').append(row);
+	
+	pos++;
+	i++;
+
+}
+
+</script>
+										<?php
+										
+										$content .= '<a href="javascript:salesforce_add_field();">Add a field</a>';
+										
+										$this->postbox('sffields',__('Form Fields', 'salesforce'),$content);
+										
+										$content = '<p>';
+										$content .= '<label>'.__('Lead Source:','salesforce').'</label><br/>';
+										$content .= '<input type="text" name="source" value="'.esc_html($options['forms'][$form_id]['source']).'">';
+										$content .= '<br/><small>'.__('Lead Source to display in Salesforce.com, use %URL% to include the URL of the page containing the form').'</small>';
+										$content .= '</p>';
+										
+										$content .= '<p>';
+										$content .= '<label>'.__('Return/Thanks URL:','salesforce').'</label><br/>';
+										$content .= '<input type="text" name="returl" value="'.esc_html($options['forms'][$form_id]['returl']).'">';
+										$content .= '<br/><small>'.__('e.g.http://yoursite.com/thanks/').'</small>';
+										$content .= '</p>';
+
+										$content .= '<input type="hidden" name="form_id" id="form_id" value="'.$form_id.'">';
+										
+										$this->postbox('sfformmeta',__('Form Settings', 'salesforce'),$content); 
+									
+								?>
+								
+								<div class="submit"><input type="submit" class="button-primary" name="submit" value="<?php _e("Save Form", 'salesforce'); ?>" /></div>
+							</form>
+							
+								<?php if( !empty($_GET['id']) && $_GET['id'] != 1 ){ ?>
+								<form action="" method="post" id="salesforce-delete">
+								<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('salesforce-udpatesettings'); } ?>
+									<input type="hidden" value="delete" name="mode"/>
+									<input type="hidden" value="<?php echo $form_id; ?>" name="form_id"/>
+									<input type="submit" name="submit" value="Delete this form">
+								</form>
+								<?php } ?>
+<?php } ?>
+					<?php } ?>
+					
+					<?php echo '<p>'.salesforce_back_link($this->plugin_options_url()).'</p>'; ?>
+					
 							<?php } ?>
 						</div>
 					</div>
@@ -266,7 +459,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					<div class="metabox-holder">	
 						<div class="meta-box-sortables">
 							<?php
-								$this->postbox('usesalesforce',__('How to Use This Plugin','salesforce'),__('<p>To use this form, copy the following shortcode into a post or page:</p><pre style="padding:5px 10px;margin:10px 0;background-color:lightyellow;">[salesforce]</pre><p>Make sure you have entered all the correct settings on the left, including your Organisation ID.</p>','salesforce'));
+								$this->postbox('usesalesforce',__('How to Use This Plugin','salesforce'),__('<p>To use this form, copy the following shortcode into a post or page:</p><pre style="padding:5px 10px;margin:10px 0;background-color:lightyellow;">[salesforce form="X"]</pre><p>Replace X with the form number for the form you want to show.</p><p>Make sure you have entered all the correct settings on the left, including your Organisation ID.</p>','salesforce'));
 								$this->plugin_like(false);
 								$this->plugin_support();
 								// $this->news(); 
@@ -289,7 +482,6 @@ function salesforce_default_settings() {
 	$options['errormsg'] 			= __('There was an error, please fill all required fields.','salesforce');
 	$options['requiredfieldstext'] 	= __('These fields are required.','salesforce');
 	$options['sferrormsg'] 			= __('Failed to connect to Salesforce.com.','salesforce');
-	$options['source'] 				= __('Lead form on ','salesforce').get_bloginfo('name');
 	$options['submitbutton']	 	= __('Submit','salesforce');
 	$options['subject']	 			= __('Thank you for contacting %BLOG_NAME%','salesforce');
 	$options['showccuser'] 			= true;
@@ -298,23 +490,45 @@ function salesforce_default_settings() {
 
 	$options['usecss']				= true;
 
-	$options['inputs'] = array(
-		'first_name' 	=> array('type' => 'text', 'label' => 'First name', 'show' => true, 'required' => true),
-		'last_name' 	=> array('type' => 'text', 'label' => 'Last name', 'show' => true, 'required' => true),
-		'email' 		=> array('type' => 'text', 'label' => 'Email', 'show' => true, 'required' => true),
-		'phone' 		=> array('type' => 'text', 'label' => 'Phone', 'show' => true, 'required' => false),
-		'description' 	=> array('type' => 'textarea', 'label' => 'Message', 'show' => true, 'required' => true),
-		'title' 		=> array('type' => 'text', 'label' => 'Title', 'show' => false, 'required' => false),
-		'company' 		=> array('type' => 'text', 'label' => 'Company', 'show' => false, 'required' => false),
-		'street' 		=> array('type' => 'text', 'label' => 'Street', 'show' => false, 'required' => false),
-		'city'	 		=> array('type' => 'text', 'label' => 'City', 'show' => false, 'required' => false),
-		'state'	 		=> array('type' => 'text', 'label' => 'State', 'show' => false, 'required' => false),
-		'zip'	 		=> array('type' => 'text', 'label' => 'ZIP', 'show' => false, 'required' => false),
-		'country'	 	=> array('type' => 'text', 'label' => 'Country', 'show' => false, 'required' => false),
-		'Campaign_ID'	=> array('type' => 'hidden', 'label' => 'Campaign ID', 'show' => false, 'required' => false),
-	);
-	update_option('salesforce', $options);
+	$options['forms'][1] = salesforce_default_form();
+	
+	update_option('salesforce2', $options);
 	return $options;
+}
+
+function salesforce_default_form() {
+
+	$dform = array();
+	
+	$dform['form_name'] = 'My Lead Form';
+	$dform['source'] = __('Lead form on ','salesforce').get_bloginfo('name');
+	$dform['returl'] = '';
+	
+	$dform['inputs'] = array(
+			'first_name' 	=> array('type' => 'text', 'label' => 'First name', 'show' => true, 'required' => true),
+			'first_name' 	=> array('type' => 'text', 'label' => 'First name', 'show' => true, 'required' => true),
+			'last_name' 	=> array('type' => 'text', 'label' => 'Last name', 'show' => true, 'required' => true),
+			'email' 		=> array('type' => 'text', 'label' => 'Email', 'show' => true, 'required' => true),
+			'phone' 		=> array('type' => 'text', 'label' => 'Phone', 'show' => true, 'required' => false),
+			'description' 	=> array('type' => 'textarea', 'label' => 'Message', 'show' => true, 'required' => true),
+			'title' 		=> array('type' => 'text', 'label' => 'Title', 'show' => false, 'required' => false),
+			'company' 		=> array('type' => 'text', 'label' => 'Company', 'show' => false, 'required' => false),
+			'street' 		=> array('type' => 'text', 'label' => 'Street', 'show' => false, 'required' => false),
+			'city'	 		=> array('type' => 'text', 'label' => 'City', 'show' => false, 'required' => false),
+			'state'	 		=> array('type' => 'text', 'label' => 'State', 'show' => false, 'required' => false),
+			'zip'	 		=> array('type' => 'text', 'label' => 'ZIP', 'show' => false, 'required' => false),
+			'country'	 	=> array('type' => 'text', 'label' => 'Country', 'show' => false, 'required' => false),
+			'Campaign_ID'	=> array('type' => 'hidden', 'label' => 'Campaign ID', 'show' => false, 'required' => false),
+		);
+	
+	return $dform;
+
+}
+
+function salesforce_back_link($url){
+
+	return '<a href="'.$url.'">&laquo; '.__('Back to configuration page','salesforce').'</a>';
+
 }
 
 /**
@@ -348,7 +562,11 @@ function w2l_sksort(&$array, $subkey="id", $sort_ascending=false) {
 }
 
 
-function salesforce_form($options, $is_sidebar = false, $content = '') {
+function salesforce_form($options, $is_sidebar = false, $content = '', $form_id = 1) {
+	
+	if( !isset($options['forms'][$form_id]) )
+		return;
+	
 	if (!empty($content))
 		$content = wpautop('<strong>'.$content.'</strong>');
 	if ($options['usecss'] && !$is_sidebar) {
@@ -382,18 +600,18 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 	if ($is_sidebar)
 		$sidebar = ' sidebar';
 	$content .= "\n".'<form class="w2llead'.$sidebar.'" method="post">'."\n";
-	foreach ($options['inputs'] as $id => $input) {
+	foreach ($options['forms'][$form_id]['inputs'] as $id => $input) {
 		if (!$input['show'])
 			continue;
 		$val 	= '';
 		if (isset($_POST[$id])){
 			$val	= esc_attr(strip_tags(stripslashes($_POST[$id])));
 		}else{
-			$val	= esc_attr(strip_tags(stripslashes($input['value'])));
+			if( isset($input['value']) ) $val	= esc_attr(strip_tags(stripslashes($input['value'])));
 		}
 
 		$error 	= ' ';
-		if ($input['error']) 
+		if (isset($input['error']) && $input['error']) 
 			$error 	= ' error ';
 			
 		if($input['type'] != 'hidden')
@@ -422,17 +640,10 @@ function salesforce_form($options, $is_sidebar = false, $content = '') {
 	}
 	
 	//spam honeypot
-	$content .= "\t".'<input type="text" name="w2lshp" class="w2linput" value="" style="display: none;"/>'."\n";
+	$content .= "\t".'<input type="text" name="message" class="w2linput" value="" style="display: none;"/>'."\n";
 
-/*
-	if (true){
-	
-		require_once('lib/recaptchalib.php');
-		$publickey = "6LfJBskSAAAAADj6sHl2qHp66vYOb5VQDq5Fxrjm";
-		$content .= recaptcha_get_html( $publickey, null, is_ssl() );
-	
-	}
-*/
+	//form id
+	$content .= "\t".'<input type="hidden" name="form_id" class="w2linput" value="'.$form_id.'" />'."\n";
 
 	$submit = stripslashes($options['submitbutton']);
 	if (empty($submit))
@@ -453,15 +664,15 @@ function submit_salesforce_form($post, $options) {
 		return false;
 
 	//spam honeypot
-	if( !empty($_POST['w2lshp']) )
+	if( !empty($_POST['message']) )
 		return false;
 
 	//print_r($_POST); //DEBUG
-
-
+	
+	$form_id = (int) $_POST['form_id'];
 
 	$post['oid'] 			= $options['org_id'];
-	$post['lead_source']	= $options['source'];
+	$post['lead_source']	= str_replace('%URL%','['.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'].']',$options['forms'][$form_id]['source']);
 	$post['debug']			= 0;
 
 	// Set SSL verify to false because of server issues.
@@ -485,7 +696,6 @@ function submit_salesforce_form($post, $options) {
 
 		if( $options['ccadmin'] )
 			salesforce_cc_admin($post, $options);
-
 		
 		return true;
 	}else{
@@ -493,7 +703,7 @@ function submit_salesforce_form($post, $options) {
 	}
 }
 
-function salesforce_cc_user($post, $options){
+function salesforce_cc_user($post, $options, $form_id = 1){
 	
 	$headers = 'From: '.get_bloginfo('name').' <' . get_option('admin_email') . ">\r\n";
 
@@ -501,7 +711,7 @@ function salesforce_cc_user($post, $options){
 	if( empty($subject) ) $subject = __('Thank you for contacting','salesforce').' '.get_bloginfo('name');
 
 	//remove hidden fields
-	foreach ($options['inputs'] as $id => $input) {
+	foreach ($options['forms'][$form_id]['inputs'] as $id => $input) {
 		if( $input['type'] == 'hidden' )
 			unset( $post[$id] );
 	}
@@ -510,17 +720,19 @@ function salesforce_cc_user($post, $options){
 	unset($post['lead_source']);
 	unset($post['debug']);
 	
+	$message = '';
+	
 	//format message
 	foreach($post as $name=>$value){
 		if( !empty($value) )
-			$message .= $options['inputs'][$name]['label'].': '.$value."\r\n";
+			$message .= $options['forms'][$form_id]['inputs'][$name]['label'].': '.$value."\r\n";
 	}
 
 	wp_mail( $_POST['email'], $subject, $message, $headers );
 
 }
 
-function salesforce_cc_admin($post, $options){
+function salesforce_cc_admin($post, $options, $form_id = 1){
 	
 	$headers = 'From: '.get_bloginfo('name').' <' . get_option('admin_email') . ">\r\n";
 
@@ -533,30 +745,40 @@ function salesforce_cc_admin($post, $options){
 	//format message
 	foreach($post as $name=>$value){
 		if( !empty($value) )
-			$message .= $options['inputs'][$name]['label'].': '.$value."\r\n";
+			$message .= $options['forms'][$form_id]['inputs'][$name]['label'].': '.$value."\r\n";
 	}
 
 	wp_mail( get_option('admin_email'), $subject, $message, $headers );
 
 }
 
-function salesforce_form_shortcode($is_sidebar = false) {
-	$options = get_option("salesforce");
+function salesforce_form_shortcode($atts) {
+
+	extract( shortcode_atts( array(
+		'form' => '1',
+		'sidebar' => 'false',
+	), $atts ) );
+	
+	$form = (int) $form;
+	$sidebar = (bool) $sidebar;
+	
+	$options = get_option("salesforce2");
 	if (!is_array($options))
-		salesforce_default_settings();
+		$options = salesforce_default_settings();
 
 	if (isset($_POST['w2lsubmit'])) {
 		$error = false;
 		$post = array();
-		foreach ($options['inputs'] as $id => $input) {
+		
+		foreach ($options['forms'][$form]['inputs'] as $id => $input) {
 			if ($input['required'] && empty($_POST[$id])) {
-				$options['inputs'][$id]['error'] = true;
+				$options['forms'][$form_id]['inputs'][$id]['error'] = true;
 				$error = true;
 			} else if ($id == 'email' && $input['required'] && !is_email($_POST[$id]) ) {
 				$error = true;
 				$emailerror = true;
 			} else {
-				$post[$id] = trim(strip_tags(stripslashes($_POST[$id])));
+				if( isset($_POST[$id]) ) $post[$id] = trim(strip_tags(stripslashes($_POST[$id])));
 			}
 		}
 		if (!$error) {
@@ -569,10 +791,10 @@ function salesforce_form_shortcode($is_sidebar = false) {
 			$errormsg = esc_html( stripslashes($options['errormsg']) ) ;
 			if ($emailerror)
 				$errormsg .= '<br/>'.__('The email address you entered is not a valid email address.','salesforce');
-			$content = salesforce_form($options, $is_sidebar, $errormsg);
+			$content = salesforce_form($options, $is_sidebar, $errormsg, $form);
 		}
 	} else {
-		$content = salesforce_form($options, $is_sidebar);
+		$content = salesforce_form($options, $sidebar, null, $form);
 	}
 	return $content;
 }
@@ -597,7 +819,7 @@ class Salesforce_WordPress_to_Lead_Widgets extends WP_Widget {
 			echo '<p>' . $instance['desc'] . '</p>';
 		}
 		$is_sidebar = true;
-		echo salesforce_form_shortcode(true);
+		echo do_shortcode('[salesforce form="1" sidebar="true"]');
 		echo $after_widget;
 	}
 
@@ -631,5 +853,49 @@ function salesforce_widget_func() {
 	register_widget( 'Salesforce_WordPress_to_Lead_Widgets' );
 }
 add_action( 'widgets_init', 'salesforce_widget_func' );
+
+function salesforce_activate(){
+
+	$oldoptions = get_option('salesforce');
+
+	//echo 'VER'.$options['version'];
+
+	if( $options['version'] != '2.1' ){
+
+		$options = salesforce_default_settings();
+		
+		//migrate existing data
+		$options['successmsg'] 			= $oldoptions['successmsg'];
+		$options['errormsg'] 			= $oldoptions['errormsg'];
+		$options['requiredfieldstext']	= $oldoptions['requiredfieldstext'];
+		$options['sferrormsg'] 			= $oldoptions['sferrormsg'];
+		$options['source'] 				= $oldoptions['source'];
+		$options['submitbutton'] 		= $oldoptions['submitbutton'];
+	
+		$options['usecss'] 				= $oldoptions['usecss'];
+
+		$options['org_id'] 				= $oldoptions['org_id'];
+
+		//copy existing form data into new data structure
+		if( is_array($oldoptions['inputs']) )
+			foreach($oldoptions['inputs'] as $key=>$val){
+				$options['forms'][1]['inputs'][$key] = $val;
+			}
+
+		//source is now saved per form
+		$options['forms'][1]['source']	= $oldoptions['source'];
+
+		update_option('salesforce2', $options);
+		//$options = get_option('salesforce');
+
+	}
+	
+	if( empty($oldoptions) ){
+		salesforce_default_settings();
+	}
+
+}
+
+register_activation_hook( __FILE__, 'salesforce_activate' );
 
 ?>

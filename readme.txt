@@ -1,9 +1,9 @@
 === WordPress-to-lead for Salesforce CRM ===
-Contributors: joostdevalk
+Contributors: joostdevalk, nickciske
 Tags: crm, contact form, contactform, wordpress to lead, wordpresstolead, salesforce.com, salesforce, salesforce crm, contact form plugin, contact form builder, Wordpress CRM
 Requires at least: 2.8
-Tested up to: 3.0
-Stable tag: 1.0.5
+Tested up to: 3.2.1
+Stable tag: 2.0
 
 WordPress-to-Lead for Salesforce CRM creates a solid integration between your WordPress install(s) and your Salesforce.com account! People can enter a contact form on your site, and the lead goes straight into Salesforce CRM: no more copy pasting lead info, no more missing leads: each and every one of them is in Salesforce.com for you to follow up.
 
@@ -25,7 +25,7 @@ Please see this [WordPress-to-Lead Demo video](http://www.youtube.com/watch?v=hn
 
 == Installation ==
 
-1. Upload the `plugin` folder to the `/wp-content/plugins/` directory
+1. Upload the `plugin` folder to the `/wp-content/plugins/` directory or install via the Add New Plugin menu
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Enter your Salesforce.com Organisation ID on the WordPress-to-Lead plugin configuration page.
 
@@ -44,15 +44,47 @@ Right now, the only way of ordering input fields is by changing the position num
 Disable the "Use Form CSS" checkbox, and copy the form css to your own css file, then start modifying it!
 
 = Is it possible to make multiple forms with this plugin? =
-Currently this plugin does not allow for that, we have it on our to do list for a future version though.
+Yes, version 2.0 introduces this feature.
 
 = How do I change the Lead Source that shows up in Salesforce? =
-You can easily change this by going into the WordPress-to-Lead admin panel and, under Salesforce settings, changing the Lead Source.
+You can easily change this by going into the WordPress-to-Lead admin panel and, under form settings, changing the Lead Source for that form.
 
 = Can I change the submit button? =
 Of course you can! Go into the WordPress-to-Lead admin panel and, under Form Settings, change the text from the default "Submit" to whatever you'd like it to be!
 
+= Will I lose data if I upgrade? Do I need to change anything? =
+No, the plugin will migrate your existing data to the new format. Your existing form will become Form 1 and be output by the [salesforce] shortcode).
+
+= How do I show my other forms? =
+Just use `[salesforce form="X"]` (X is the form number).
+Or select a form number in the widget.
+
+= I put my campaign name in the Campaign_ID field but it's not working =
+The Campaign_ID field requires the Campaign ID -- the name will not work. To find the Campaign_ID, go your the campaign page and look in the URL bar for the ID:
+
+e.g. https://salesforce.com/621U000000IJat
+
+In this example, 621U000000IJat is the Campaign_ID -- make sure you use the ID from the campaign you want the lead attached to and not the example ID shown here.
+
+= Does the return/thanks URL have to be on my site? =
+No, as long as it's a valid URL it will work. However it should be an absolute URL regardless of where it is located.
+e.g. http://yoursite.com/thanks/ not just /thanks/
+
 == Changelog ==
+
+= 2.0 =
+* Improved internationalization
+* Multiple forms can be created and inserted via shortcode or widget
+* Spam protection (with optional captcha)
+* Fixed "Cannot use object of type WP_Error as array" bug
+* Fixed bug that showed successful submissions as "Failed to connect to SalesForce.com"
+* Hidden fields can now be used
+* Campaign_ID can now be set per form
+* Widget now hides description text upon submission
+* Admins can recieve an email of submissions
+* Users can request a copy of their submission (if enabled)
+* Custom return/thanks URL can be defined per form
+* Country field added
 
 = 1.0.5 =
 * Fix in backend security, preventing XSS hack in the backend.
@@ -71,3 +103,8 @@ Of course you can! Go into the WordPress-to-Lead admin panel and, under Form Set
 
 = 1.0 =
 * Initial release.
+
+== Upgrade Notice ==
+
+= 2.0 =
+This version fixes a bug that caused the plugin to appear broken, despite sending leads to SalesForce.com.
