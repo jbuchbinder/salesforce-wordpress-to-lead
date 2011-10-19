@@ -793,8 +793,16 @@ function salesforce_form_shortcode($atts) {
 			else
 			
 				if( isset($options['forms'][$form]['returl']) ){
-					wp_redirect( $options['forms'][$form]['returl'] );
-					exit;
+					//wp_redirect( $options['forms'][$form]['returl'] );
+					//exit;
+					
+					?>
+					<script type="text/javascript">
+				   <!--
+				      window.location= <?php echo "'" . $options['forms'][$form]['returl'] . "'"; ?>;
+				   //-->
+				   </script>
+					<?php
 				}
 			
 				$content = '<strong>'.esc_html(stripslashes($options['successmsg'])).'</strong>';
