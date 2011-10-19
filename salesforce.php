@@ -73,27 +73,32 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					}
 					
 					//add any new fields
-					foreach ($_POST['add_inputs'] as $key=>$input) {
 					
-						$id = $input['field_name'];
+					if( isset($_POST['add_inputs']) ){
 					
-						if( !empty($id) ){
-							foreach (array('show','required') as $option_name) {
-								if (isset($_POST['add_inputs'][$key][$option_name])) {
-									$newinputs[$id][$option_name] = true;
-									unset($_POST['add_inputs'][$key][$option_name]);
-								} else {
-									$newinputs[$id][$option_name] = false;
+						foreach ($_POST['add_inputs'] as $key=>$input) {
+						
+							$id = $input['field_name'];
+						
+							if( !empty($id) ){
+								foreach (array('show','required') as $option_name) {
+									if (isset($_POST['add_inputs'][$key][$option_name])) {
+										$newinputs[$id][$option_name] = true;
+										unset($_POST['add_inputs'][$key][$option_name]);
+									} else {
+										$newinputs[$id][$option_name] = false;
+									}
 								}
-							}
-							
-							foreach (array('type','label','value','pos') as $option_name) {
-								if (isset($_POST['add_inputs'][$key][$option_name])) {
-									$newinputs[$id][$option_name] = $_POST['add_inputs'][$key][$option_name];
-									unset($_POST['add_inputs'][$key][$option_name]);
+								
+								foreach (array('type','label','value','pos') as $option_name) {
+									if (isset($_POST['add_inputs'][$key][$option_name])) {
+										$newinputs[$id][$option_name] = $_POST['add_inputs'][$key][$option_name];
+										unset($_POST['add_inputs'][$key][$option_name]);
+									}
 								}
 							}
 						}
+					
 					}
 					
 					w2l_sksort($newinputs,'pos',true);
@@ -786,6 +791,12 @@ function salesforce_form_shortcode($atts) {
 			if (!$result)
 				$content = '<strong>'.esc_html(stripslashes($options['sferrormsg'])).'</strong>';			
 			else
+			
+				if( isset($options['forms'][$form]['returl']) ){
+					wp_redirect( $options['forms'][$form]['returl'] );
+					exit;
+				}
+			
 				$content = '<strong>'.esc_html(stripslashes($options['successmsg'])).'</strong>';
 		} else {
 			$errormsg = esc_html( stripslashes($options['errormsg']) ) ;
