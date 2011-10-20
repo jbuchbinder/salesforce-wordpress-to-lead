@@ -125,7 +125,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					if (!current_user_can('manage_options')) die(__('You cannot edit the WordPress-to-Lead options.', 'salesforce'));
 					check_admin_referer('salesforce-udpatesettings');
 					
-					foreach (array('usecss','showccuser','ccadmin') as $option_name) {
+					foreach (array('usecss','showccuser','ccadmin','captcha') as $option_name) {
 						if (isset($_POST[$option_name])) {
 							$options[$option_name] = true;
 						} else {
@@ -187,9 +187,12 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content = $this->textinput('submitbutton',__('Submit button text', 'salesforce') );
 									$content .= $this->textinput('requiredfieldstext',__('Required fields text', 'salesforce') );
 									$content .= $this->checkbox('usecss',__('Use Form CSS?', 'salesforce') );
-									$content .= '<br/><small><a href="'.$this->plugin_options_url().'&amp;tab=css">'.__('Read how to copy the CSS to your own CSS file').'</a></small>';
+									$content .= '<br/><small><a href="'.$this->plugin_options_url().'&amp;tab=css">'.__('Read how to copy the CSS to your own CSS file').'</a></small><br><br>';
+
+									$content .= $this->checkbox('captcha',__('Use CAPTCHA?', 'salesforce') );
+									$content .= '<br/><small><a href="http://en.wikipedia.org/wiki/CAPTCHA" target="_blank">'.__('Learn more about CAPTCHAs at WikiPedia').'</a></small>';
+
 									$this->postbox('formsettings',__('Form Settings', 'salesforce'),$content); 
-									
 									
 									$content = '<table border="1">';
 									$content .= '<tr><th>ID</th><th>Name</th></tr>';		
@@ -492,6 +495,7 @@ function salesforce_default_settings() {
 	$options['showccuser'] 			= true;
 	$options['ccusermsg']			= __('Send me a copy','salesforce');
 	$options['ccadmin']				= false;
+	$options['captcha']				= false;
 
 	$options['usecss']				= true;
 
@@ -641,7 +645,27 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	if( $options['showccuser'] ){
 		$label = $options['ccusermsg'];
 		if( empty($label) ) $label = __('Send me a copy','salesforce');
-		$content .= "\t\n\t".'<input type="checkbox" name="w2lcc" class="w2linput checkbox" value="1"/><label class="w2llabel checkbox">'.esc_html($label)."</label><br/>\n";
+		$content .= "\t\n\t".'<p><input type="checkbox" name="w2lcc" class="w2linput checkbox" value="1"/><label class="w2llabel checkbox">'.esc_html($label)."</label></p>\n";
+	}
+	
+	//captcha
+	
+	if($options['captcha']){
+	
+		include("lib/captcha/captcha.php");
+		$captcha = captcha();
+		
+		//$content .=  'CODE='.$captcha['code'].'<hr>';
+	
+		$sf_hash = sha1($captcha['code'].NONCE_SALT);
+	
+		set_transient( $sf_hash, $captcha['code'], 60*15 );
+	
+		$content .=  '<p><label class="w2llabel">'.__('Type the text shown: *','salesforce').'</label><br><img src="' . $captcha['image_src'] . '&hash=' . $sf_hash . '" alt="CAPTCHA image" />';
+
+		$content .=  '<input type="text" class="w2linput text" name="captcha_text" value=""></p>';
+		$content .=  '<input type="hidden" class="w2linput hidden" name="captcha_hash" value="'. $sf_hash .'">';
+	
 	}
 	
 	//spam honeypot
@@ -786,13 +810,24 @@ function salesforce_form_shortcode($atts) {
 				if( isset($_POST[$id]) ) $post[$id] = trim(strip_tags(stripslashes($_POST[$id])));
 			}
 		}
+		
+		//check captcha if enabled
+		if( $options['captcha'] ){
+			
+			if( $_POST['captcha_hash'] != sha1( $_POST['captcha_text'].NONCE_SALT )){
+				$error = true;
+				$captchaerror = true;
+			}
+			
+		}
+		
 		if (!$error) {
 			$result = submit_salesforce_form($post, $options);
 			if (!$result)
 				$content = '<strong>'.esc_html(stripslashes($options['sferrormsg'])).'</strong>';			
 			else
 			
-				if( isset($options['forms'][$form]['returl']) ){
+				if( !empty($options['forms'][$form]['returl']) ){
 					//wp_redirect( $options['forms'][$form]['returl'] );
 					//exit;
 					
@@ -810,6 +845,10 @@ function salesforce_form_shortcode($atts) {
 			$errormsg = esc_html( stripslashes($options['errormsg']) ) ;
 			if ($emailerror)
 				$errormsg .= '<br/>'.__('The email address you entered is not a valid email address.','salesforce');
+			
+			if ($captchaerror)
+				$errormsg .= '<br/>'.__('The letters you entered did not match the image.','salesforce');
+			
 			$content = salesforce_form($options, $is_sidebar, $errormsg, $form);
 		}
 	} else {
@@ -916,5 +955,14 @@ function salesforce_activate(){
 }
 
 register_activation_hook( __FILE__, 'salesforce_activate' );
+
+/*
+add_action('init','salesforce_init');
+
+function salesforce_init(){
+	
+}
+*/
+
 
 ?>
