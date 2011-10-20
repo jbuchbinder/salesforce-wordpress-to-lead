@@ -918,7 +918,7 @@ function salesforce_activate(){
 
 	//echo 'VER'.$options['version'];
 
-	if( $options['version'] != '2.1' ){
+	if( $options['version'] != '2.0' ){
 
 		$options = salesforce_default_settings();
 		
