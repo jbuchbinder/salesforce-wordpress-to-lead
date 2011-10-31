@@ -156,6 +156,15 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 				<a href="http://salesforce.com/"><div id="yoast-icon" style="background: url(<?php echo plugins_url('',__FILE__); ?>/salesforce-50x50.png) no-repeat;" class="icon32"><br /></div></a>
 				<h2 style="line-height: 50px;"><?php echo $this->longname; ?></h2>
 				<div class="postbox-container" style="width:70%;">
+					
+					<?php
+					
+					if( isset($_POST['submit']) && empty($_POST['mode']) ){
+						echo '<div id="message" class="updated"><p>' . __('Configuration Saved','salesforce') . '</p></div>';
+					}
+					
+					?>
+										
 					<div class="metabox-holder">	
 						<div class="meta-box-sortables">
 							<?php if (!isset($_GET['tab']) || $_GET['tab'] == 'home') { ?>
@@ -194,6 +203,11 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 
 									$this->postbox('formsettings',__('Form Settings', 'salesforce'),$content); 
 									
+									
+									?>
+									<div class="submit"><input type="submit" class="button-primary" name="submit" value="<?php _e("Save WordPress-to-Lead Settings", 'salesforce'); ?>" /></div>
+									<?php
+									
 									$content = '<table border="1">';
 									$content .= '<tr><th>ID</th><th>Name</th></tr>';		
 									foreach($options['forms'] as $key=>$form){
@@ -203,13 +217,13 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									}
 									$content .= '</table>';	
 									
-									$content .= '<p><a href="'.$this->plugin_options_url().'&tab=form">'.__('Add a new form','salesforce').' &raquo;</a></p>';			
+									$content .= '<p><a class="button-secondary" href="'.$this->plugin_options_url().'&tab=form">'.__('Add a new form','salesforce').' &raquo;</a></p>';			
 
 										$this->postbox('sfforms',__('Forms', 'salesforce'),$content); 
 
 
 								?>
-								<div class="submit"><input type="submit" class="button-primary" name="submit" value="<?php _e("Save WordPress-to-Lead Settings", 'salesforce'); ?>" /></div>
+								
 							</form>
 							<?php } else if ($_GET['tab'] == 'css') { ?>
 							<?php echo '<p>'.salesforce_back_link($this->plugin_options_url()).'</p>'; ?>
@@ -421,7 +435,7 @@ function salesforce_add_field(){
 </script>
 										<?php
 										
-										$content .= '<a href="javascript:salesforce_add_field();">Add a field</a>';
+										$content .= '<p><a class="button-secondary" href="javascript:salesforce_add_field();">Add a field</a></p>';
 										
 										$this->postbox('sffields',__('Form Fields', 'salesforce'),$content);
 										
@@ -509,7 +523,7 @@ function salesforce_default_form() {
 
 	$dform = array();
 	
-	$dform['form_name'] = 'My Lead Form';
+	$dform['form_name'] = 'My Lead Form '.date('Y-m-d h:i:s');
 	$dform['source'] = __('Lead form on ','salesforce').get_bloginfo('name');
 	$dform['returl'] = '';
 	
