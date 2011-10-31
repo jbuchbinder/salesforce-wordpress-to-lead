@@ -948,11 +948,17 @@ function salesforce_activate(){
 
 		$options['org_id'] 				= $oldoptions['org_id'];
 
-		//copy existing form data into new data structure
+		//copy existing form input data
 		if( is_array($oldoptions['inputs']) )
 			foreach($oldoptions['inputs'] as $key=>$val){
-				$options['forms'][1]['inputs'][$key] = $val;
+				$newinputs[$key] = $val;
 			}
+
+		//sort merged inputs
+		w2l_sksort($newinputs,'pos',true);
+		
+		//save merged and sorted inputs
+		$options['forms'][1]['inputs'] = $newinputs;
 
 		//source is now saved per form
 		$options['forms'][1]['source']	= $oldoptions['source'];
