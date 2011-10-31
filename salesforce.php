@@ -367,7 +367,7 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 									//$this->postbox('options','Options','<pre>'.print_r($options,true).'</pre>'); //DEBUG
 
 										$content = '<p>';
-										$content .= '<input type="text" name="form_name" value="'.esc_html($options['forms'][$form_id]['form_name']).'">';
+										$content .= '<input type="text" name="form_name" style="width:50%;" value="'.esc_html($options['forms'][$form_id]['form_name']).'">';
 										//$content .= '<br/><small>'.__('').'</small>';
 										$content .= '</p>';
 										
@@ -441,13 +441,13 @@ function salesforce_add_field(){
 										
 										$content = '<p>';
 										$content .= '<label>'.__('Lead Source:','salesforce').'</label><br/>';
-										$content .= '<input type="text" name="source" value="'.esc_html($options['forms'][$form_id]['source']).'">';
+										$content .= '<input type="text" name="source" style="width:50%;" value="'.esc_html($options['forms'][$form_id]['source']).'">';
 										$content .= '<br/><small>'.__('Lead Source to display in Salesforce.com, use %URL% to include the URL of the page containing the form').'</small>';
 										$content .= '</p>';
 										
 										$content .= '<p>';
 										$content .= '<label>'.__('Return/Thanks URL:','salesforce').'</label><br/>';
-										$content .= '<input type="text" name="returl" value="'.esc_html($options['forms'][$form_id]['returl']).'">';
+										$content .= '<input type="text" name="returl" style="width:50%;" value="'.esc_html($options['forms'][$form_id]['returl']).'">';
 										$content .= '<br/><small>'.__('e.g.http://yoursite.com/thanks/').'</small>';
 										$content .= '</p>';
 
@@ -891,13 +891,13 @@ class Salesforce_WordPress_to_Lead_Widgets extends WP_Widget {
 			echo '<p>' . $instance['desc'] . '</p>';
 		}
 		$is_sidebar = true;
-		echo do_shortcode('[salesforce form="1" sidebar="true"]');
+		echo do_shortcode('[salesforce form="'.$instance['form'].'" sidebar="true"]');
 		echo $after_widget;
 	}
 
 	function update( $new_instance, $old_instance ) {
 		$instance = $old_instance;
-		foreach ( array('title', 'desc') as $val ) {
+		foreach ( array('title', 'desc', 'form') as $val ) {
 			$instance[$val] = strip_tags( $new_instance[$val] );
 		}
 		return $instance;
@@ -907,16 +907,39 @@ class Salesforce_WordPress_to_Lead_Widgets extends WP_Widget {
 		$defaults = array( 
 			'title' => 'Contact Us', 
 			'desc' 	=> 'Contact us using the form below', 
+			'form' 	=> 1, 
 		);
 		$instance = wp_parse_args( (array) $instance, $defaults ); ?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e("Title"); ?>:</label>
 			<input id="<?php echo $this->get_field_id( 'title' ); ?>" name="<?php echo $this->get_field_name( 'title' ); ?>" value="<?php echo $instance['title']; ?>" style="width:90%;" />
 		</p>
+
 		<p>
 			<label for="<?php echo $this->get_field_id( 'desc' ); ?>"><?php _e("Introduction"); ?>:</label>
 			<input id="<?php echo $this->get_field_id( 'desc' ); ?>" name="<?php echo $this->get_field_name( 'desc' ); ?>" value="<?php echo $instance['desc']; ?>" style="width:90%;" />
 		</p>
+
+		<p>
+			<label for="<?php echo $this->get_field_id( 'form' ); ?>"><?php _e("Form"); ?>:</label>
+			<select id="<?php echo $this->get_field_id( 'form' ); ?>" name="<?php echo $this->get_field_name( 'form' ); ?>">
+				<?php
+				$sfoptions = get_option('salesforce2');
+				
+				foreach($sfoptions['forms'] as $key=>$value){
+					
+					echo '<option value="'.$key.'"';
+					if( $instance['form'] == $key)
+						echo ' selected="selected"';
+					echo '>'.$value['form_name'].'</option>';
+						 				
+				
+				}
+				?>
+			</select>
+		</p>
+
+
 	<?php 
 	}
 }
