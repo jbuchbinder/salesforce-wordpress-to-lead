@@ -640,7 +640,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		if($input['type'] != 'hidden')
 			$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label'])).':';
 		
-		if ($input['required'])
+		if ($input['required'] && $input['type'] != 'hidden')
 			$content .= ' *';
 		
 		if($input['type'] != 'hidden')
@@ -668,7 +668,8 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	
 		set_transient( $sf_hash, $captcha['code'], 60*15 );
 	
-		$content .=  '<label class="w2llabel">'.__('Type the text shown: *','salesforce').'</label><br><img src="' . $captcha['image_src'] . '&hash=' . $sf_hash . '" alt="CAPTCHA image" />';
+		$content .=  '<label class="w2llabel">'.__('Type the text shown: *','salesforce').'</label><br>
+			<img class="w2limg" src="' . $captcha['image_src'] . '&hash=' . $sf_hash . '" alt="CAPTCHA image" /><br>';
 
 		$content .=  '<input type="text" class="w2linput text" name="captcha_text" value=""><br>';
 		$content .=  '<input type="hidden" class="w2linput hidden" name="captcha_hash" value="'. $sf_hash .'">';
@@ -861,9 +862,9 @@ function salesforce_form_shortcode($atts) {
 				$errormsg .= '<br/>'.__('The email address you entered is not a valid email address.','salesforce');
 			
 			if ($captchaerror)
-				$errormsg .= '<br/>'.__('The letters you entered did not match the image.','salesforce');
+				$errormsg .= '<br/>'.__('The text you entered did not match the image.','salesforce');
 			
-			$content = salesforce_form($options, $is_sidebar, $errormsg, $form);
+			$content = salesforce_form($options, $sidebar, $errormsg, $form);
 		}
 	} else {
 		$content = salesforce_form($options, $sidebar, null, $form);
@@ -1000,14 +1001,3 @@ function salesforce_activate(){
 }
 
 register_activation_hook( __FILE__, 'salesforce_activate' );
-
-/*
-add_action('init','salesforce_init');
-
-function salesforce_init(){
-	
-}
-*/
-
-
-?>
