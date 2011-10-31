@@ -199,7 +199,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content .= '<br/><small><a href="'.$this->plugin_options_url().'&amp;tab=css">'.__('Read how to copy the CSS to your own CSS file').'</a></small><br><br>';
 
 									$content .= $this->checkbox('captcha',__('Use CAPTCHA?', 'salesforce') );
-									$content .= '<br/><small><a href="http://en.wikipedia.org/wiki/CAPTCHA" target="_blank">'.__('Learn more about CAPTCHAs at WikiPedia').'</a></small>';
+									$content .= '<br/><small><a href="http://en.wikipedia.org/wiki/CAPTCHA" target="_blank">'.__('Learn more about CAPTCHAs at Wikipedia').'</a></small>';
 
 									$this->postbox('formsettings',__('Form Settings', 'salesforce'),$content); 
 									
@@ -655,13 +655,6 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		}
 	}
 
-	//send me a copy
-	if( $options['showccuser'] ){
-		$label = $options['ccusermsg'];
-		if( empty($label) ) $label = __('Send me a copy','salesforce');
-		$content .= "\t\n\t".'<p><input type="checkbox" name="w2lcc" class="w2linput checkbox" value="1"/><label class="w2llabel checkbox">'.esc_html($label)."</label></p>\n";
-	}
-	
 	//captcha
 	
 	if($options['captcha']){
@@ -675,11 +668,18 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	
 		set_transient( $sf_hash, $captcha['code'], 60*15 );
 	
-		$content .=  '<p><label class="w2llabel">'.__('Type the text shown: *','salesforce').'</label><br><img src="' . $captcha['image_src'] . '&hash=' . $sf_hash . '" alt="CAPTCHA image" />';
+		$content .=  '<label class="w2llabel">'.__('Type the text shown: *','salesforce').'</label><br><img src="' . $captcha['image_src'] . '&hash=' . $sf_hash . '" alt="CAPTCHA image" />';
 
-		$content .=  '<input type="text" class="w2linput text" name="captcha_text" value=""></p>';
+		$content .=  '<input type="text" class="w2linput text" name="captcha_text" value=""><br>';
 		$content .=  '<input type="hidden" class="w2linput hidden" name="captcha_hash" value="'. $sf_hash .'">';
 	
+	}
+	
+	//send me a copy
+	if( $options['showccuser'] ){
+		$label = $options['ccusermsg'];
+		if( empty($label) ) $label = __('Send me a copy','salesforce');
+		$content .= "\t\n\t".'<input type="checkbox" name="w2lcc" class="w2linput checkbox" value="1"/><label class="w2llabel checkbox">'.esc_html($label)."</label><br>\n";
 	}
 	
 	//spam honeypot
@@ -968,6 +968,8 @@ function salesforce_activate(){
 		$options['submitbutton'] 		= $oldoptions['submitbutton'];
 	
 		$options['usecss'] 				= $oldoptions['usecss'];
+
+		$options['ccusermsg'] 			= false; //default to off for upgrades
 
 		$options['org_id'] 				= $oldoptions['org_id'];
 
