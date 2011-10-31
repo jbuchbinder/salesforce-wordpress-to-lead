@@ -465,7 +465,7 @@ function salesforce_add_field(){
 								<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('salesforce-udpatesettings'); } ?>
 									<input type="hidden" value="delete" name="mode"/>
 									<input type="hidden" value="<?php echo $form_id; ?>" name="form_id"/>
-									<input type="submit" name="submit" value="Delete this form">
+									<input type="submit" name="submit" class="button-secondary" value="Delete this form">
 								</form>
 								<?php } ?>
 <?php } ?>
