@@ -172,7 +172,10 @@ if( isset($_GET['_CAPTCHA']) ) {
 	
 	list($bg_width, $bg_height, $bg_type, $bg_attr) = getimagesize($background);
 
-	$code = get_transient($_GET['hash']);
+	// Get code from Transient and Discard
+	$hash = ereg_replace('[^A-Za-z0-9]', '', $_GET['hash']);
+	$code = get_transient( $hash );
+	delete_transient( $hash );
 	
 	$captcha = imagecreatefrompng($background);
 	
