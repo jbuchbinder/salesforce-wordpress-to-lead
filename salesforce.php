@@ -134,7 +134,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					}
 					
 					
-			        foreach (array('successmsg','errormsg','sferrormsg','org_id','submitbutton','subject','ccusermsg') as $option_name) {
+			        foreach (array('successmsg','errormsg','sferrormsg','org_id','submitbutton','subject','ccusermsg','requiredfieldstext') as $option_name) {
 						if (isset($_POST[$option_name])) {
 							$options[$option_name] = $_POST[$option_name];
 						}
