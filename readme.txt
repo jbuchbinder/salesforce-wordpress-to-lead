@@ -5,7 +5,7 @@ Requires at least: 2.8
 Tested up to: 3.2.1
 Stable tag: 2.0
 
-WordPress-to-Lead for Salesforce CRM creates a solid integration between your WordPress install(s) and your Salesforce.com account! People can enter a contact form on your site, and the lead goes straight into Salesforce CRM: no more copy pasting lead info, no more missing leads: each and every one of them is in Salesforce.com for you to follow up.
+WordPress-to-Lead for Salesforce CRM creates a solid integration between your WordPress install(s) and your Salesforce.com account!
 
 == Description ==
 
