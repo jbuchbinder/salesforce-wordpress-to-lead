@@ -743,6 +743,7 @@ function submit_salesforce_form($post, $options) {
 		
 		return true;
 	}else{
+
 		return false;
 	}
 }
@@ -838,9 +839,14 @@ function salesforce_form_shortcode($atts) {
 		
 		if (!$error) {
 			$result = submit_salesforce_form($post, $options);
-			if (!$result)
+			
+			//echo 'RESULT='.$result;
+			//if($result) echo 'true';
+			//if(!$result) echo 'false';
+			
+			if (!$result){
 				$content = '<strong>'.esc_html(stripslashes($options['sferrormsg'])).'</strong>';			
-			else
+			}else{
 			
 				if( !empty($options['forms'][$form]['returl']) ){
 					//wp_redirect( $options['forms'][$form]['returl'] );
@@ -856,6 +862,7 @@ function salesforce_form_shortcode($atts) {
 				}
 			
 				$content = '<strong>'.esc_html(stripslashes($options['successmsg'])).'</strong>';
+			}
 		} else {
 			$errormsg = esc_html( stripslashes($options['errormsg']) ) ;
 			if ($emailerror)
@@ -864,7 +871,7 @@ function salesforce_form_shortcode($atts) {
 			if ($captchaerror)
 				$errormsg .= '<br/>'.__('The text you entered did not match the image.','salesforce');
 			
-			$content = salesforce_form($options, $sidebar, $errormsg, $form);
+			$content .= salesforce_form($options, $sidebar, $errormsg, $form);
 		}
 	} else {
 		$content = salesforce_form($options, $sidebar, null, $form);
