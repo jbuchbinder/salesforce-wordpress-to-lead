@@ -20,8 +20,9 @@ Please see this [WordPress-to-Lead Demo video](http://www.youtube.com/watch?v=hn
 
 == Screenshots ==
 
-1. An example form generated with WordPress-to-Lead for Salesforce CRM
+1. An example form generated with WordPress-to-Lead for Salesforce CRM (with optional CAPTCHA) -- both post and widget forms are shown in the TwentyEleven theme
 2. The backend administration for WordPress-to-Lead for Salesforce CRM
+3. The new form editor (multiple forms, hidden fields, add new fields, thanks URL, lead source per form)
 
 == Installation ==
 
