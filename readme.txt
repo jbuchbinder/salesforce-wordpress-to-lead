@@ -1,11 +1,11 @@
 === WordPress-to-lead for Salesforce CRM ===
-Contributors: joostdevalk, nickciske
+Contributors: joostdevalk, nickciske, produced by Modern Tribe, Inc. (moderntribe)
 Tags: crm, contact form, contactform, wordpress to lead, wordpresstolead, salesforce.com, salesforce, salesforce crm, contact form plugin, contact form builder, Wordpress CRM
 Requires at least: 2.8
 Tested up to: 3.2.1
 Stable tag: 2.0
 
-WordPress-to-Lead for Salesforce CRM creates a solid integration between your WordPress install(s) and your Salesforce.com account! People can enter a contact form on your site, and the lead goes straight into Salesforce CRM: no more copy pasting lead info, no more missing leads: each and every one of them is in Salesforce.com for you to follow up.
+WordPress-to-Lead for Salesforce CRM creates a solid integration between your WordPress install(s) and your Salesforce.com account!
 
 == Description ==
 
@@ -20,8 +20,9 @@ Please see this [WordPress-to-Lead Demo video](http://www.youtube.com/watch?v=hn
 
 == Screenshots ==
 
-1. An example form generated with WordPress-to-Lead for Salesforce CRM
+1. An example form generated with WordPress-to-Lead for Salesforce CRM (with optional CAPTCHA) -- both post and widget forms are shown in the TwentyEleven theme
 2. The backend administration for WordPress-to-Lead for Salesforce CRM
+3. The new form editor (multiple forms, hidden fields, add new fields, thanks URL, lead source per form)
 
 == Installation ==
 
