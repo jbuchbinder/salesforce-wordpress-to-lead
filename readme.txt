@@ -33,7 +33,7 @@ Please see this [WordPress-to-Lead Demo video](http://www.youtube.com/watch?v=hn
 == Frequently Asked Questions ==
 
 = Where do I find my Salesforce organisation ID? =
-To find your Organisation ID, do the following:
+To find your Organisation ID, do the following steps:
 * log in to your SalesForce.com account
 * go to Setup &raquo; Company Profile &raquo; Company Information
 * you'll find the Organisation ID in the lower right hand corner of your screen
