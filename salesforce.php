@@ -44,8 +44,6 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 			
 			if ( isset($_POST['submit']) ) {
 				
-				//die('<pre>'.print_r($_POST,true)); //DEBUG
-
 				$form_id = (int) $_POST['form_id'];
 
 				if($_POST['mode'] == 'editform'){
