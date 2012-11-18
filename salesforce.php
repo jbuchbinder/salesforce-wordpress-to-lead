@@ -1018,11 +1018,14 @@ add_action( 'widgets_init', 'salesforce_widget_func' );
 
 function salesforce_activate(){
 
+	$options = get_option('salesforce2');
+
+	if( $options['version'] == '2.0' )
+		return;
+
 	$oldoptions = get_option('salesforce');
-
-	//echo 'VER'.$options['version'];
-
-	if( !empty($oldoptions) && isset( $oldoptions['version'] ) && $oldoptions['version'] != '2.0' ){
+	
+	if( !empty($oldoptions) && $oldoptions['version'] != '2.0' ){
 
 		$options = salesforce_default_settings();
 		
@@ -1073,7 +1076,5 @@ function save_error(){
     update_option('plugin_error',  ob_get_contents());
 }
 */
-
-add_filter('salesforce_w2l_cc_admin_email_list','salesforce_add_emails');
 
 register_activation_hook( __FILE__, 'salesforce_activate' );
