@@ -30,12 +30,16 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 			add_action('admin_print_scripts', array(&$this,'config_page_scripts'));
 			add_action('admin_print_styles', array(&$this,'config_page_styles'));	
 			add_action('admin_footer', array(&$this,'warning'));
+
 		}
 				
 		function warning() {
 			$options  = get_option($this->optionname);
 			if (!isset($options['org_id']) || empty($options['org_id']))
 				echo "<div id='message' class='error'><p><strong>".__('Your WordPress-to-Lead settings are not complete.','salesforce')."</strong> ".__('You must enter your Salesforce.com Organisation ID for it to work.','salesforce')." <a href='".$this->plugin_options_url()."'>".__('Settings','salesforce')."</a></p></div>";
+				
+				//echo 'ERROR= '.get_option('plugin_error');
+				
 		}
 		
 		function config_page() {
@@ -44,9 +48,11 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 			
 			if ( isset($_POST['submit']) ) {
 				
-				$form_id = (int) $_POST['form_id'];
+				//die('<pre>'.print_r($_POST,true)); //DEBUG
 
-				if($_POST['mode'] == 'editform'){
+				if( isset( $_POST['mode'] ) && $_POST['mode'] == 'editform' ){
+
+					$form_id = (int) $_POST['form_id'];
 					
 					if(!isset($options['forms'][$form_id]))
 						$options['forms'][$form_id] = salesforce_default_form();
@@ -110,7 +116,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					
 					//End Save Form Data
 				
-				}elseif($_POST['mode'] == 'delete'){
+				}elseif( isset( $_POST['mode'] ) && $_POST['mode'] == 'delete'){
 				
 					if( isset( $_POST['form_id'] ) && $_POST['form_id'] != 1 )
 						unset( $options['forms'][$_POST['form_id']] );
@@ -265,13 +271,13 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
   width: 150px;
 }
 .w2linput.checkbox{
-  height:18px;
-  margin:0px 0;
+  vertical-align: middle;
 }
 .w2llabel.checkbox{
-  clear:none;
-  height:18px;
-  margin: -8px 0 4px 4px;
+  clear:both;
+}
+.w2limg{ 
+display: block; clear: both; 
 }
 #salesforce {
   margin: 3px 0 0 0;
@@ -514,6 +520,7 @@ function salesforce_default_settings() {
 	$options['forms'][1] = salesforce_default_form();
 	
 	update_option('salesforce2', $options);
+	
 	return $options;
 }
 
@@ -557,6 +564,12 @@ function salesforce_back_link($url){
  * Taken from: http://php.net/manual/en/function.ksort.php
  */
 function w2l_sksort(&$array, $subkey="id", $sort_ascending=false) {
+
+	if( !is_array( $array ) )
+		return $array;
+		
+	$temp_array = array();
+
     if (count($array))
         $temp_array[key($array)] = array_shift($array);
 
@@ -590,37 +603,42 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	
 	if (!empty($content))
 		$content = wpautop('<strong>'.$content.'</strong>');
+		
 	if ($options['usecss'] && !$is_sidebar) {
 		$content .= '<style type="text/css">
-		form.w2llead{text-align:left;clear:both;}
-		.w2llabel, .w2linput {display:block;float:left;}
-		.w2llabel.error {color:#f00;}
-		.w2llabel {clear:left;margin:4px 0;width:50%;}
-		.w2linput.text{width:50%;height:18px;margin:4px 0;}
-		.w2linput.textarea {clear:both;width:100%;height:75px;margin:10px 0;}
-		.w2linput.submit {float:none;margin:10px 0 0 0;clear:both;}
-		.w2linput.checkbox{height:18px;margin:0px 0;}
-		.w2llabel.checkbox{clear:none;height:18px; margin: -8px 0 4px 4px;}
-		#salesforce{margin:3px 0 0 0;color:#aaa;}
-		#salesforce a{color:#999;}
+		form.w2llead{ text-align:left; clear:both;}
+		.w2llabel, .w2linput { display:block; float:left; }
+		.w2llabel.error { color:#f00; }
+		.w2llabel { clear:left; margin:4px 0; width:50%; }
+		.w2linput.text{ width:50%; height:18px; margin:4px 0; }
+		.w2linput.textarea { clear:both; width:100%; height:75px; margin:10px 0;}
+		.w2linput.submit { float:none; margin: 10px 0 0 0; clear:both;}
+		.w2linput.checkbox{ vertical-align: middle;}
+		.w2llabel.checkbox{ clear:both; }
+		.w2limg{ display: block; clear: both; }
+		#salesforce{ margin:3px 0 0 0; color:#aaa; }
+		#salesforce a{ color:#999; }
 		</style>';
-	} else if ($is_sidebar && $options['usecss']) {
+	} elseif ($is_sidebar && $options['usecss']) {
 		$content .= '<style type="text/css">
-		.sidebar form.w2llead{clear:none;text-align:left;}
-		.sidebar .w2linput, #sidebar .w2llabel{float:none; display:inline;}
-		.sidebar .w2llabel.error {color:#f00;}
-		.sidebar .w2llabel {margin:4px 0;float:none;display:inline;}
-		.sidebar .w2linput.text{width:95%;height:18px;margin:4px 0;}
-		.sidebar .w2linput.textarea {width:95%;height:50px;margin:10px 0;}
-		.sidebar .w2linput.submit {margin:10px 0 0 0;}
-		#salesforce{margin:3px 0 0 0;color:#aaa;}
-		#salesforce a{color:#999;}
+		.sidebar form.w2llead{ clear:none; text-align:left; }
+		.sidebar .w2linput, #sidebar .w2llabel{ float:none; display:inline; }
+		.sidebar .w2llabel.error { color:#f00; }
+		.sidebar .w2llabel { margin:4px 0; float:none; display:inline; }
+		.sidebar .w2linput.text{ width:95%; height:18px; margin:4px 0;}
+		.sidebar .w2linput.textarea {width:95%; height:50px; margin:10px 0;}
+		.sidebar .w2linput.submit { margin:10px 0 0 0; }
+		#salesforce{ margin:3px 0 0 0; color:#aaa; }
+		#salesforce a{ color:#999; }
 		</style>';
 	}
 	$sidebar = '';
-	if ($is_sidebar)
+	
+	if ( $is_sidebar )
 		$sidebar = ' sidebar';
-	$content .= "\n".'<form class="w2llead'.$sidebar.'" method="post">'."\n";
+		
+	$content .= "\n".'<form id="salesforce_w2l_lead_'.$form_id.str_replace(' ','_',$sidebar).'" class="w2llead'.$sidebar.'" method="post">'."\n";
+
 	foreach ($options['forms'][$form_id]['inputs'] as $id => $input) {
 		if (!$input['show'])
 			continue;
@@ -678,7 +696,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	if( $options['showccuser'] ){
 		$label = $options['ccusermsg'];
 		if( empty($label) ) $label = __('Send me a copy','salesforce');
-		$content .= "\t\n\t".'<input type="checkbox" name="w2lcc" class="w2linput checkbox" value="1"/><label class="w2llabel checkbox">'.esc_html($label)."</label><br>\n";
+		$content .= "\t\n\t".'<p><label class="w2llabel checkbox"><input type="checkbox" name="w2lcc" class="w2linput checkbox" value="1"/>'.esc_html($label)."</label><p>\n";
 	}
 	
 	//spam honeypot
@@ -697,10 +715,14 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	if (!empty($reqtext))
 		$content .= '<p id="requiredfieldsmsg"><sup>*</sup>'.esc_html($reqtext).'</p>';
 	$content .= '<div id="salesforce"><small>'.__('Powered by','salesforce').' <a href="http://www.salesforce.com/">Salesforce CRM</a></small></div>';
+	
+	$content = apply_filters('salesforce_w2l_form_html', $content);
+	
 	return $content;
 }
 
 function submit_salesforce_form($post, $options) {
+	
 	global $wp_version;
 	if (!isset($options['org_id']) || empty($options['org_id']))
 		return false;
@@ -711,7 +733,7 @@ function submit_salesforce_form($post, $options) {
 
 	//print_r($_POST); //DEBUG
 	
-	$form_id = (int) $_POST['form_id'];
+	$form_id = intval( $_POST['form_id'] );
 
 	$post['oid'] 			= $options['org_id'];
 	$post['lead_source']	= str_replace('%URL%','['.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'].']',$options['forms'][$form_id]['source']);
@@ -727,17 +749,17 @@ function submit_salesforce_form($post, $options) {
 	);
 	
 	$result = wp_remote_post('https://www.salesforce.com/servlet/servlet.WebToLead?encoding=UTF-8', $args);
-
+	
 	if( is_wp_error($result) )
 		return false;
 	
 	if ($result['response']['code'] == 200){
 
-		if( $_POST['w2lcc'] == 1 )
-			salesforce_cc_user($post, $options);
+		if( isset( $_POST['w2lcc'] ) && $_POST['w2lcc'] == 1 )
+			salesforce_cc_user($post, $options, $form_id);
 
-		if( $options['ccadmin'] )
-			salesforce_cc_admin($post, $options);
+		if( isset( $options['ccadmin'] ) && $options['ccadmin'] )
+			salesforce_cc_admin($post, $options, $form_id);
 		
 		return true;
 	}else{
@@ -748,7 +770,10 @@ function submit_salesforce_form($post, $options) {
 
 function salesforce_cc_user($post, $options, $form_id = 1){
 	
-	$headers = 'From: '.get_bloginfo('name').' <' . get_option('admin_email') . ">\r\n";
+	$from_name = apply_filters('salesforce_w2l_cc_user_from_name', get_bloginfo('name'));
+	$from_email = apply_filters('salesforce_w2l_cc_user_from_email', get_option('admin_email'));
+	
+	$headers = 'From: '.$from_name.' <' . $from_email . ">\r\n";
 
 	$subject = str_replace('%BLOG_NAME%', get_bloginfo('name'), $options['subject']);
 	if( empty($subject) ) $subject = __('Thank you for contacting','salesforce').' '.get_bloginfo('name');
@@ -764,6 +789,10 @@ function salesforce_cc_user($post, $options, $form_id = 1){
 	unset($post['debug']);
 	
 	$message = '';
+
+	//$message .= print_r( $post , true);
+	//$message .= print_r( $options['forms'][$form_id]['inputs'] , true);
+
 	
 	//format message
 	foreach($post as $name=>$value){
@@ -776,10 +805,15 @@ function salesforce_cc_user($post, $options, $form_id = 1){
 }
 
 function salesforce_cc_admin($post, $options, $form_id = 1){
+
+	$from_name = apply_filters('salesforce_w2l_cc_admin_from_name', get_bloginfo('name'));
+	$from_email = apply_filters('salesforce_w2l_cc_admin_from_email', get_option('admin_email'));
 	
-	$headers = 'From: '.get_bloginfo('name').' <' . get_option('admin_email') . ">\r\n";
+	$headers = 'From: '.$from_name.' <' . $from_email . ">\r\n";
 
 	$subject = __('Salesforce WP to Lead Submission','salesforce');
+
+	$message = '';
 
 	unset($post['oid']);
 	unset($post['lead_source']);
@@ -791,7 +825,15 @@ function salesforce_cc_admin($post, $options, $form_id = 1){
 			$message .= $options['forms'][$form_id]['inputs'][$name]['label'].': '.$value."\r\n";
 	}
 
-	wp_mail( get_option('admin_email'), $subject, $message, $headers );
+	$emails = array( get_option('admin_email') );
+
+	$emails = apply_filters( 'salesforce_w2l_cc_admin_email_list', $emails );
+	
+	//print_r( $emails );
+	
+	foreach( $emails as $email ){
+		wp_mail( $email, $subject, $message, $headers );
+	}
 
 }
 
@@ -799,8 +841,12 @@ function salesforce_form_shortcode($atts) {
 
 	extract( shortcode_atts( array(
 		'form' => '1',
-		'sidebar' => 'false',
+		'sidebar' => false,
 	), $atts ) );
+	
+	$emailerror = '';
+	$captchaerror = '';
+	$content = '';
 	
 	$form = (int) $form;
 	$sidebar = (bool) $sidebar;
@@ -809,13 +855,25 @@ function salesforce_form_shortcode($atts) {
 	if (!is_array($options))
 		$options = salesforce_default_settings();
 
+	//don't submit unless we're in the right shortcode
+	if( isset( $_POST['form_id'] ) ){
+		$form_id = intval( $_POST['form_id'] );
+		
+		if( $form_id != $form ){
+			$content = salesforce_form($options, $sidebar, null, $form);
+			return $content;
+			
+		}
+	}
+
+	//this is the right form, continue
 	if (isset($_POST['w2lsubmit'])) {
 		$error = false;
 		$post = array();
 		
 		foreach ($options['forms'][$form]['inputs'] as $id => $input) {
 			if ($input['required'] && empty($_POST[$id])) {
-				$options['forms'][$form_id]['inputs'][$id]['error'] = true;
+				$options['forms'][$form]['inputs'][$id]['error'] = true;
 				$error = true;
 			} else if ($id == 'email' && $input['required'] && !is_email($_POST[$id]) ) {
 				$error = true;
@@ -836,13 +894,14 @@ function salesforce_form_shortcode($atts) {
 		}
 		
 		if (!$error) {
-			$result = submit_salesforce_form($post, $options);
+			$result = submit_salesforce_form($post, $options, $form);
 			
 			//echo 'RESULT='.$result;
 			//if($result) echo 'true';
 			//if(!$result) echo 'false';
-			
+						
 			if (!$result){
+				
 				$content = '<strong>'.esc_html(stripslashes($options['sferrormsg'])).'</strong>';			
 			}else{
 			
@@ -874,8 +933,10 @@ function salesforce_form_shortcode($atts) {
 	} else {
 		$content = salesforce_form($options, $sidebar, null, $form);
 	}
+	
 	return $content;
 }
+
 add_shortcode('salesforce', 'salesforce_form_shortcode');	
 
 class Salesforce_WordPress_to_Lead_Widgets extends WP_Widget {
@@ -961,7 +1022,7 @@ function salesforce_activate(){
 
 	//echo 'VER'.$options['version'];
 
-	if( $options['version'] != '2.0' ){
+	if( !empty($oldoptions) && isset( $oldoptions['version'] ) && $oldoptions['version'] != '2.0' ){
 
 		$options = salesforce_default_settings();
 		
@@ -1003,6 +1064,21 @@ function salesforce_activate(){
 		salesforce_default_settings();
 	}
 
+}
+
+/*
+//Save Activation Error to DB for review
+add_action('activated_plugin','save_error');
+function save_error(){
+    update_option('plugin_error',  ob_get_contents());
+}
+*/
+
+add_filter('salesforce_w2l_cc_admin_email_list','salesforce_add_emails');
+
+function salesforce_add_emails( $emails ){
+$emails[]='info@nickciske.com';
+return $emails;
 }
 
 register_activation_hook( __FILE__, 'salesforce_activate' );

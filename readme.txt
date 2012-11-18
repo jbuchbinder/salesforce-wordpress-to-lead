@@ -2,7 +2,7 @@
 Contributors: joostdevalk, nickciske, moderntribe
 Tags: crm, contact form, contactform, wordpress to lead, wordpresstolead, salesforce.com, salesforce, salesforce crm, contact form plugin, contact form builder, Wordpress CRM
 Requires at least: 2.8
-Tested up to: 3.2.1
+Tested up to: 3.4.2
 Stable tag: 2.0
 
 WordPress-to-Lead for Salesforce CRM creates a solid integration between your WordPress install(s) and your Salesforce.com account!
@@ -20,7 +20,7 @@ Please see this [WordPress-to-Lead Demo video](http://www.youtube.com/watch?v=hn
 
 == Screenshots ==
 
-1. An example form generated with WordPress-to-Lead for Salesforce CRM (with optional CAPTCHA enabled) -- both post and widget forms are shown in the TwentyEleven theme
+1. An example form generated with WordPress-to-Lead for Salesforce CRM (with optional CAPTCHA) -- both post and widget forms are shown in the TwentyEleven theme
 2. The backend administration for WordPress-to-Lead for Salesforce CRM
 3. The new form editor (multiple forms, hidden fields, add new fields, thanks URL, lead source per form)
 
@@ -72,6 +72,17 @@ No, as long as it's a valid URL it will work. However it should be an absolute U
 e.g. http://yoursite.com/thanks/ not just /thanks/
 
 == Changelog ==
+
+= 2.0.1 =
+* Fixed issue with captcha URL being broken on some installs
+* Added several filters, including one to allow editing of the distribution list for new lead notifications and one to allow filtering of the form HTML before output
+* Fixed bug where captcha would wrap outside form on some themes
+* Fixed bug where forms other than id 1 did not show field labels in emails
+* Fixed bug causing unexpected output upon activation
+* Fixed bug that caused form to always be in 'sidebar' mode
+* Now supports more than 1 form per page
+* Forms now have a unique ID for use with CSS and jQuery: salesforce_w2l_lead_[ID] and salesforce_w2l_lead_[ID]_sidebar
+* Fixed a bunch of notices and warnings
 
 = 2.0 =
 * Improved internationalization
