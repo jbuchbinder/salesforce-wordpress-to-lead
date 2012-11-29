@@ -73,6 +73,10 @@ e.g. http://yoursite.com/thanks/ not just /thanks/
 
 == Changelog ==
 
+= 2.0.3 =
+* Captcha image now works on subfolder installs (e.g. /wordpress/)
+* Removed captcha dependence on including wp-load.php
+
 = 2.0.2 =
 * Small formatting fixes (checkbox spacing and submit button CSS)
 
