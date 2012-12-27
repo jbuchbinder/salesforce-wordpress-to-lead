@@ -97,7 +97,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									}
 								}
 								
-								foreach (array('type','label','value','pos') as $option_name) {
+								foreach (array('type','label','value','pos','opts') as $option_name) {
 									if (isset($_POST['add_inputs'][$key][$option_name])) {
 										$newinputs[$id][$option_name] = $_POST['add_inputs'][$key][$option_name];
 										unset($_POST['add_inputs'][$key][$option_name]);
@@ -383,11 +383,12 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 										$content = '<style type="text/css">th{text-align:left;}</style><table id="salesforce_form_editor">';
 										$content .= '<tr>'
 										.'<th width="15%">'.__('Field','salesforce').'</th>'
-										.'<th width="10%">'.__('Enable','salesforce').'</th>'
+										.'<th width="5%">'.__('Enable','salesforce').'</th>'
 										.'<th width="10%">'.__('Required','salesforce').'</th>'
 										.'<th width="10%">'.__('Type','salesforce').'</th>'
 										.'<th width="20%">'.__('Label','salesforce').'</th>'
-										.'<th width="20%">'.__('Value','salesforce').'</th>'
+										.'<th width="10%">'.__('Value','salesforce').'</th>'
+										.'<th width="15%">'.__('Options','salesforce').'</th>'
 										.'<th width="10%">'.__('Position','salesforce').'</th>'
 										.'</tr>';
 										$i = 1;
@@ -402,12 +403,14 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 											$content .= '<option '.selected($input['type'],'text',false).'>text</option>';
 											$content .= '<option '.selected($input['type'],'textarea',false).'>textarea</option>';
 											$content .= '<option '.selected($input['type'],'hidden',false).'>hidden</option>';
+											$content .= '<option '.selected($input['type'],'select',false).'>select</option>';
 											$content .= '</select></td>';
 											$content .= '<td><input size="20" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
 											
 											$content .= '<td><input size="20" name="inputs['.$field.'_value]" type="text" value="';
 											if( isset($input['value']) ) $content .= esc_html($input['value']);
 											$content .= '"/></td>';
+											$content .= '<td><input name="inputs['.$field.'_opts]" type="text" value="'.esc_html($input['opts']).'"/></td>';
 											$content .= '<td><input size="2" name="inputs['.$field.'_pos]" type="text" value="'.esc_html($input['pos']).'"/></td>';
 											$content .= '</tr>';
 											$i++;
@@ -426,9 +429,10 @@ function salesforce_add_field(){
 	row += '<td><input type="text" size="10" name="add_inputs['+i+'][field_name]"></td>';
 	row += '<td><input type="checkbox" name="add_inputs['+i+'][show]"></td>';
 	row += '<td><input type="checkbox" name="add_inputs['+i+'][required]"></td>';
-	row += '<td><select name="add_inputs['+i+'][type]"><option>text</option><option>textarea</option><option>hidden</option></select></td>';
+	row += '<td><select name="add_inputs['+i+'][type]"><option>text</option><option>textarea</option><option>hidden</option><option>select</option></select></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][label]"></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][value]"></td>';
+	row += '<td><input type="text" name="add_inputs['+i+'][opts]"></td>';
 	row += '<td><input type="text" size="2" name="add_inputs['+i+'][pos]" value="'+pos+'"></td>';
 	row += '</tr>';
 	
@@ -673,11 +677,20 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			$content .= '</label>'."\n";
 		
 		if ($input['type'] == 'text') {			
-			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"/><br/>'."\n\n";
+			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"'.( !empty($input['type']) ? ' placeholder="'.$input['type'].'" title="'.$input['type'].'"' : '' ).'/><br/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
 			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'">'.$val.'</textarea><br/>'."\n\n";
 		} else if ($input['type'] == 'hidden') {
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.$val.'">'."\n\n";
+		} else if ($input['type'] == 'select') {
+			$content .= "\t\n\t".'<select id="sf_'.$id.'" class="w2linput select" name="'.$id.'">';
+			if (strpos($input['opts'], '|') !== false) {
+				$opts = explode('|', $input['opts']);
+				foreach ($opts AS $opt) {
+					$content .= '<option value="' + $opt + '">' + $opt + '</option>' + "\n";
+				}
+			}
+			$content .= '</select><br/>'."\n\n";
 		}
 	}
 
