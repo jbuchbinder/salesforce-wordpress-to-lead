@@ -687,7 +687,12 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			if (strpos($input['opts'], '|') !== false) {
 				$opts = explode('|', $input['opts']);
 				foreach ($opts AS $opt) {
-					$content .= '<option value="' + $opt + '">' + $opt + '</option>' + "\n";
+					if (strpos($opt,':') !== false) {
+						list ($k, $v) = explode(':', $opt);
+					} else {
+						$k = $v = $opt;
+					}
+					$content .= '<option value="' + $v + '">' + $k + '</option>' + "\n";
 				}
 			}
 			$content .= '</select><br/>'."\n\n";
