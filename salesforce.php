@@ -680,7 +680,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		}
 		
 		if ($input['required'] && $input['type'] != 'hidden')
-			$content .= ' *';
+			$content .= ' <em>*</em>';
 		
 		if($input['type'] != 'hidden') {
 			$content .= '</label>'."\n";
@@ -690,16 +690,19 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		if ($input['type'] == 'text') {			
 			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-text' : 'w2linput text';
+			$content .= $options['wpcf7css'] && $input['required'] ? ' wpcf7-validates-as-required required' : '';
 			$content .= '" name="'.$id.'" type="text"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'/><br/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
 			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-textarea' : 'w2linput textarea';
+			$content .= $options['wpcf7css'] && $input['required'] ? ' wpcf7-validates-as-required required' : '';
 			$content .= '" name="'.$id.'"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'>'.$val.'</textarea><br/>'."\n\n";
 		} else if ($input['type'] == 'hidden') {
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.$val.'">'."\n\n";
 		} else if ($input['type'] == 'select') {
 			$content .= "\t\n\t".'<select id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-select style-select' : 'w2linput select';
+			$content .= $options['wpcf7css'] && $input['required'] ? ' wpcf7-validates-as-required required' : '';
 			$content .= '" name="'.$id.'">';
 			if (strpos($input['opts'], '|') !== false) {
 				$opts = explode('|', $input['opts']);
@@ -756,13 +759,24 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	$submit = stripslashes($options['submitbutton']);
 	if (empty($submit))
 		$submit = "Submit";
-	$content .= "\t".'<div class="w2lsubmit"><input type="submit" name="w2lsubmit" class="';
+	$content .= "\t";
+	if ($options['wpcf7css']) {
+		$content .= '<p class="punt">';
+	} else {
+		$content .= '<div class="w2lsubmit">';
+	}
+	$content .= '<input type="submit" name="w2lsubmit" class="';
 	if ($options['wpcf7css']) {
 		$content .= 'wpcf7-form-control wpcf7-submit btn';
 	} else {
 		$content .= 'w2linput submit';
 	}
-	$content .= '" value="'.esc_attr($submit).'"/></div>'."\n";
+	$content .= '" value="'.esc_attr($submit).'"/>'."\n";
+	if ($options['wpcf7css']) {
+		$content .= '</p>';
+	} else {
+		$content .= '</div>';
+	}
 	$content .= '</form>'."\n";
 
 	$reqtext = stripslashes($options['requiredfieldstext']);
@@ -772,6 +786,10 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		$content .= '<div id="salesforce"><small>'.__('Powered by','salesforce').' <a href="http://www.salesforce.com/">Salesforce CRM</a></small></div>';
 	}
 	
+	if ( $options['wpcf7css'] ) {
+		$content .= '</section>';
+	}	
+
 	$content = apply_filters('salesforce_w2l_form_html', $content);
 	
 	return $content;
