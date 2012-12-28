@@ -132,7 +132,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					if (!current_user_can('manage_options')) die(__('You cannot edit the WordPress-to-Lead options.', 'salesforce'));
 					check_admin_referer('salesforce-udpatesettings');
 					
-					foreach (array('usecss','showccuser','ccadmin','captcha') as $option_name) {
+					foreach (array('usecss','showccuser','ccadmin','captcha','wpcf7css','hide_salesforce_link') as $option_name) {
 						if (isset($_POST[$option_name])) {
 							$options[$option_name] = true;
 						} else {
@@ -203,6 +203,8 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content = $this->textinput('submitbutton',__('Submit button text', 'salesforce') );
 									$content .= $this->textinput('requiredfieldstext',__('Required fields text', 'salesforce') );
 									$content .= $this->checkbox('usecss',__('Use Form CSS?', 'salesforce') );
+									$content .= $this->checkbox('wpcf7css',__('Use WPCF7 CSS integration?', 'salesforce') );
+									$content .= $this->checkbox('hide_salesforce_link',__('Hide salesforce link on form?', 'salesforce') );
 									$content .= '<br/><small><a href="'.$this->plugin_options_url().'&amp;tab=css">'.__('Read how to copy the CSS to your own CSS file').'</a></small><br><br>';
 
 									$content .= $this->checkbox('captcha',__('Use CAPTCHA?', 'salesforce') );
@@ -523,6 +525,8 @@ function salesforce_default_settings() {
 	$options['captcha']				= false;
 
 	$options['usecss']				= true;
+	$options['wpcf7css']				= false;
+	$options['hide_salesforce_link']		= false;
 
 	$options['forms'][1] = salesforce_default_form();
 	
@@ -650,8 +654,11 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	
 	if ( $is_sidebar )
 		$sidebar = ' sidebar';
-		
-	$content .= "\n".'<form id="salesforce_w2l_lead_'.$form_id.str_replace(' ','_',$sidebar).'" class="w2llead'.$sidebar.'" method="post">'."\n";
+	
+	if ( $options['wpcf7css'] ) {
+		$content .= '<section class="form-holder clearfix"><div class="wpcf7">';
+	}	
+	$content .= "\n".'<form id="salesforce_w2l_lead_'.$form_id.str_replace(' ','_',$sidebar).'" class="'.($options['wpcf7css'] ? 'wpcf7-form' : 'w2llead'.$sidebar ).'" method="post">'."\n";
 
 	foreach ($options['forms'][$form_id]['inputs'] as $id => $input) {
 		if (!$input['show'])
@@ -667,23 +674,33 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		if (isset($input['error']) && $input['error']) 
 			$error 	= ' error ';
 			
-		if($input['type'] != 'hidden')
+		if($input['type'] != 'hidden') {
+			if ($options['wpcf7css']) { $content .= '<p>'; }
 			$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label'])).':';
+		}
 		
 		if ($input['required'] && $input['type'] != 'hidden')
 			$content .= ' *';
 		
-		if($input['type'] != 'hidden')
+		if($input['type'] != 'hidden') {
 			$content .= '</label>'."\n";
+			if ($options['wpcf7css']) { $content .= '<span class="wpcf7-form-control-wrap">'; }
+		}
 		
 		if ($input['type'] == 'text') {			
-			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'/><br/>'."\n\n";
+			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="';
+			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-text' : 'w2linput text';
+			$content .= '" name="'.$id.'" type="text"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'/><br/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
-			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'>'.$val.'</textarea><br/>'."\n\n";
+			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="';
+			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-textarea' : 'w2linput textarea';
+			$content .= '" name="'.$id.'"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'>'.$val.'</textarea><br/>'."\n\n";
 		} else if ($input['type'] == 'hidden') {
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.$val.'">'."\n\n";
 		} else if ($input['type'] == 'select') {
-			$content .= "\t\n\t".'<select id="sf_'.$id.'" class="w2linput select" name="'.$id.'">';
+			$content .= "\t\n\t".'<select id="sf_'.$id.'" class="';
+			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-select style-select' : 'w2linput select';
+			$content .= '" name="'.$id.'">';
 			if (strpos($input['opts'], '|') !== false) {
 				$opts = explode('|', $input['opts']);
 				foreach ($opts AS $opt) {
@@ -696,6 +713,9 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 				}
 			}
 			$content .= '</select><br/>'."\n\n";
+		}
+		if($input['type'] != 'hidden') {
+			if ($options['wpcf7css']) { $content .= '</span></p>'; }
 		}
 	}
 
@@ -736,13 +756,21 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 	$submit = stripslashes($options['submitbutton']);
 	if (empty($submit))
 		$submit = "Submit";
-	$content .= "\t".'<div class="w2lsubmit"><input type="submit" name="w2lsubmit" class="w2linput submit" value="'.esc_attr($submit).'"/></div>'."\n";
+	$content .= "\t".'<div class="w2lsubmit"><input type="submit" name="w2lsubmit" class="';
+	if ($options['wpcf7css']) {
+		$content .= 'wpcf7-form-control wpcf7-submit btn';
+	} else {
+		$content .= 'w2linput submit';
+	}
+	$content .= '" value="'.esc_attr($submit).'"/></div>'."\n";
 	$content .= '</form>'."\n";
 
 	$reqtext = stripslashes($options['requiredfieldstext']);
 	if (!empty($reqtext))
 		$content .= '<p id="requiredfieldsmsg"><sup>*</sup>'.esc_html($reqtext).'</p>';
-	$content .= '<div id="salesforce"><small>'.__('Powered by','salesforce').' <a href="http://www.salesforce.com/">Salesforce CRM</a></small></div>';
+	if (!$options['hide_salesforce_link']) {
+		$content .= '<div id="salesforce"><small>'.__('Powered by','salesforce').' <a href="http://www.salesforce.com/">Salesforce CRM</a></small></div>';
+	}
 	
 	$content = apply_filters('salesforce_w2l_form_html', $content);
 	
@@ -1062,10 +1090,12 @@ function salesforce_activate(){
 		$options['errormsg'] 			= $oldoptions['errormsg'];
 		$options['requiredfieldstext']	= $oldoptions['requiredfieldstext'];
 		$options['sferrormsg'] 			= $oldoptions['sferrormsg'];
-		$options['source'] 				= $oldoptions['source'];
+		$options['source'] 			= $oldoptions['source'];
 		$options['submitbutton'] 		= $oldoptions['submitbutton'];
 	
 		$options['usecss'] 				= $oldoptions['usecss'];
+		$options['wpcf7css'] 				= $oldoptions['wpcf7css'];
+		$options['hide_salesforce_link'] 		= $oldoptions['hide_salesforce_link'];
 
 		$options['ccusermsg'] 			= false; //default to off for upgrades
 
