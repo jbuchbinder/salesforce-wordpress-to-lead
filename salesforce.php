@@ -124,6 +124,13 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					if( isset( $_POST['form_id'] ) && $_POST['form_id'] != 1 )
 						unset( $options['forms'][$_POST['form_id']] );
 				
+				}elseif( isset( $_POST['mode'] ) && $_POST['mode'] == 'clone'){
+				
+					if( isset( $_POST['form_id'] ) && $_POST['form_id'] != 1 ) {
+						$new_id = max(array_keys($options['forms'])) + 1;
+						$options['forms'][$new_id] = $options['forms'][$_POST['form_id']];
+					}
+				
 				}else{
 				
 					//Save general settings
@@ -343,6 +350,10 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 
 	echo '<div id="message" class="updated"><p>' . __('Deleted Form #','salesforce') . $form_id . '</p></div>';
 
+} else if(isset($_POST['mode']) && $_POST['mode'] == 'clone' && $form_id != 1 ) {
+
+	echo '<div id="message" class="updated"><p>' . __('Cloned Form #','salesforce') . $form_id . '</p></div>';
+
 }else{
 
 	if(!isset($form_id) && isset($_GET['id']))
@@ -479,6 +490,12 @@ function salesforce_add_field(){
 									<input type="hidden" value="delete" name="mode"/>
 									<input type="hidden" value="<?php echo $form_id; ?>" name="form_id"/>
 									<input type="submit" name="submit" class="button-secondary" value="Delete this form">
+								</form>
+								<form action="" method="post" id="salesforce-clone">
+								<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('salesforce-udpatesettings'); } ?>
+									<input type="hidden" value="clone" name="mode"/>
+									<input type="hidden" value="<?php echo $form_id; ?>" name="form_id"/>
+									<input type="submit" name="submit" class="button-secondary" value="Clone this form">
 								</form>
 								<?php } ?>
 <?php } ?>
