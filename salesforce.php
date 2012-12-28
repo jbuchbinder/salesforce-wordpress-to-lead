@@ -71,7 +71,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 								$newinputs[$id][$option_name] = false;
 							}
 						}
-						foreach (array('type','label','value','pos') as $option_name) {
+						foreach (array('type','label','value','pos','opts') as $option_name) {
 							if (isset($_POST['inputs'][$id.'_'.$option_name])) {
 								$newinputs[$id][$option_name] = $_POST['inputs'][$id.'_'.$option_name];
 								unset($_POST['inputs'][$id.'_'.$option_name]);
@@ -677,9 +677,9 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			$content .= '</label>'."\n";
 		
 		if ($input['type'] == 'text') {			
-			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"'.( !empty($input['type']) ? ' placeholder="'.$input['type'].'" title="'.$input['type'].'"' : '' ).'/><br/>'."\n\n";
+			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="w2linput text" name="'.$id.'" type="text"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'/><br/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
-			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'">'.$val.'</textarea><br/>'."\n\n";
+			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="w2linput textarea" name="'.$id.'"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'>'.$val.'</textarea><br/>'."\n\n";
 		} else if ($input['type'] == 'hidden') {
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.$val.'">'."\n\n";
 		} else if ($input['type'] == 'select') {
