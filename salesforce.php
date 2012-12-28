@@ -692,7 +692,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 					} else {
 						$k = $v = $opt;
 					}
-					$content .= '<option value="' + $v + '">' + $k + '</option>' + "\n";
+					$content .= '<option value="' . $v . '">' . $k . '</option>' . "\n";
 				}
 			}
 			$content .= '</select><br/>'."\n\n";
