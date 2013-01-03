@@ -710,7 +710,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			$content .= $options['wpcf7css'] && $input['required'] ? ' wpcf7-validates-as-required required' : '';
 			$content .= '" name="'.$id.'" type="text"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'/><br/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
-			$content .= "\t".'<br/>'."\n\t".'<textarea id="sf_'.$id.'" class="';
+			$content .= "\t".( !$options['wpcf7css'] ? '<br/>' : '' )."\n\t".'<textarea id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-textarea' : 'w2linput textarea';
 			$content .= $options['wpcf7css'] && $input['required'] ? ' wpcf7-validates-as-required required' : '';
 			$content .= '" name="'.$id.'"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'>'.$val.'</textarea><br/>'."\n\n";
