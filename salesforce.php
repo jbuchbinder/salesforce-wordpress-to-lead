@@ -417,6 +417,7 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 											$content .= '<option '.selected($input['type'],'textarea',false).'>textarea</option>';
 											$content .= '<option '.selected($input['type'],'hidden',false).'>hidden</option>';
 											$content .= '<option '.selected($input['type'],'select',false).'>select</option>';
+											$content .= '<option '.selected($input['type'],'checkbox',false).'>checkbox</option>';
 											$content .= '</select></td>';
 											$content .= '<td><input size="20" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
 											
@@ -733,6 +734,8 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 				}
 			}
 			$content .= '</select><br/>'."\n\n";
+		} else if ($input['type'] == 'checkbox') {
+			$content .= "\t\n\t".'<input type="checkbox" id="sf_'.$id.'" class="w2linput checkbox" name="'.$id.'" value="'.$val.'" />'."\n\n";
 		}
 		if($input['type'] != 'hidden') {
 			if ($options['wpcf7css']) { $content .= '</span></p>'; }
