@@ -443,7 +443,7 @@ function salesforce_add_field(){
 	row += '<td><input type="text" size="10" name="add_inputs['+i+'][field_name]"></td>';
 	row += '<td><input type="checkbox" name="add_inputs['+i+'][show]"></td>';
 	row += '<td><input type="checkbox" name="add_inputs['+i+'][required]"></td>';
-	row += '<td><select name="add_inputs['+i+'][type]"><option>text</option><option>textarea</option><option>hidden</option><option>select</option></select></td>';
+	row += '<td><select name="add_inputs['+i+'][type]"><option>text</option><option>textarea</option><option>hidden</option><option>select</option><option>checkbox</option></select></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][label]"></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][value]"></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][opts]"></td>';
@@ -693,8 +693,14 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			$error 	= ' error ';
 			
 		if($input['type'] != 'hidden') {
-			if ($options['wpcf7css']) { $content .= '<p>'; }
-			$content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label'])).':';
+      if ($options['wpcf7css']) { $content .= '<p>'; }
+      if ($input['type'] == 'checkbox') {
+        $content .= "\t\n\t".'<input type="checkbox" id="sf_'.$id.'" class="w2linput checkbox" name="'.$id.'" value="'.$val.'" />'."\n\n";
+      }
+      $content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label']));
+      if ($input['type'] != 'checkbox') {
+        $content .= ':';
+      }
 		}
 		
 		if ($input['required'] && $input['type'] != 'hidden')
@@ -734,8 +740,6 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 				}
 			}
 			$content .= '</select><br/>'."\n\n";
-		} else if ($input['type'] == 'checkbox') {
-			$content .= "\t\n\t".'<input type="checkbox" id="sf_'.$id.'" class="w2linput checkbox" name="'.$id.'" value="'.$val.'" />'."\n\n";
 		}
 		if($input['type'] != 'hidden') {
 			if ($options['wpcf7css']) { $content .= '</span></p>'; }
