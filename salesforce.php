@@ -288,6 +288,9 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 .w2llabel.checkbox{
   clear:both;
 }
+.w2linput.select{
+  clear:both;
+}
 .w2limg{ 
 display: block; clear: both; 
 }
