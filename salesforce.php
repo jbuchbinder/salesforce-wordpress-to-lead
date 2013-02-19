@@ -710,7 +710,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
       if ($input['type'] == 'checkbox') {
         $content .= "\t\n\t".'<input type="checkbox" id="sf_'.$id.'" class="w2linput checkbox" name="'.$id.'" value="'.$val.'" />'."\n\n";
       }
-      $content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.esc_html(stripslashes($input['label']));
+      $content .= "\t".'<label class="w2llabel'.$error.$input['type'].'" for="sf_'.$id.'">'.( $input['opts'] == 'html' && $input['type'] == 'checkbox' ? stripslashes($input['label']) : esc_html(stripslashes($input['label'])));
       if ($input['type'] != 'checkbox') {
         $content .= ':';
       }
