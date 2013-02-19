@@ -851,7 +851,9 @@ function submit_salesforce_form($post, $options) {
 	$form_id = intval( $_POST['form_id'] );
 
 	$post['oid'] 			= $options['org_id'];
-	$post['lead_source']	= str_replace('%URL%','['.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'].']',$options['forms'][$form_id]['source']);
+	if (!empty($options['forms'][$form_id]['source'])) {
+		$post['lead_source']	= str_replace('%URL%','['.$_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI'].']',$options['forms'][$form_id]['source']);
+	}
 	$post['debug']			= 0;
 
 	// Set SSL verify to false because of server issues.
@@ -900,7 +902,9 @@ function salesforce_cc_user($post, $options, $form_id = 1){
 	}
 	
 	unset($post['oid']);
-	unset($post['lead_source']);
+	if (!empty($options['forms'][$form_id]['source'])) {
+		unset($post['lead_source']);
+	}
 	unset($post['debug']);
 	
 	$message = '';
@@ -931,7 +935,9 @@ function salesforce_cc_admin($post, $options, $form_id = 1){
 	$message = '';
 
 	unset($post['oid']);
-	unset($post['lead_source']);
+	if (!empty($options['forms'][$form_id]['source'])) {
+		unset($post['lead_source']);
+	}
 	unset($post['debug']);
 	
 	//format message
