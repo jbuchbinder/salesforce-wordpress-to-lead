@@ -422,6 +422,7 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 											$content .= '<option '.selected($input['type'],'select',false).'>select</option>';
 											$content .= '<option '.selected($input['type'],'checkbox',false).'>checkbox</option>';
 											$content .= '<option '.selected($input['type'],'current_date',false).'>current_date</option>';
+											$content .= '<option '.selected($input['type'],'html',false).'>html</option>';
 											$content .= '</select></td>';
 											$content .= '<td><input size="20" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
 											
@@ -447,7 +448,15 @@ function salesforce_add_field(){
 	row += '<td><input type="text" size="10" name="add_inputs['+i+'][field_name]"></td>';
 	row += '<td><input type="checkbox" name="add_inputs['+i+'][show]"></td>';
 	row += '<td><input type="checkbox" name="add_inputs['+i+'][required]"></td>';
-	row += '<td><select name="add_inputs['+i+'][type]"><option>text</option><option>textarea</option><option>hidden</option><option>select</option><option>checkbox</option><option>current_date</option></select></td>';
+	row += '<td><select name="add_inputs['+i+'][type]">'
+		+ '<option>text</option>'
+		+ '<option>textarea</option>'
+		+ '<option>hidden</option>'
+		+ '<option>select</option>'
+		+ '<option>checkbox</option>'
+		+ '<option>current_date</option>'
+		+ '<option>html</option>'
+		+ '</select></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][label]"></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][value]"></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][opts]"></td>';
@@ -729,6 +738,8 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.$val.'">'."\n\n";
 		} else if ($input['type'] == 'current_date') {
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.date($input['opts']).'">'."\n\n";
+		} else if ($input['type'] == 'html'){
+			$content .= $input['opts']."\n\n";
 		} else if ($input['type'] == 'select') {
 			$content .= "\t\n\t".'<select id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-select style-select' : 'w2linput select';
