@@ -63,6 +63,10 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					//Begin Save Form Data
 					$newinputs = array();
 					foreach ($options['forms'][$form_id]['inputs'] as $id => $input) {
+						if (!empty($_POST['inputs'][$id.'_delete'])) {
+							continue;
+						}
+
 						foreach (array('show','required') as $option_name) {
 							if (isset($_POST['inputs'][$id.'_'.$option_name])) {
 								$newinputs[$id][$option_name] = true;
@@ -179,7 +183,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 					
 					?>
 										
-					<div class="metabox-holder">	
+					<div class="metabox-holder col-wrap">	
 						<div class="meta-box-sortables">
 							<?php if (!isset($_GET['tab']) || $_GET['tab'] == 'home') { ?>
 							<form action="" method="post" id="salesforce-conf">
@@ -396,25 +400,37 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 										
 										$this->postbox('sfformtitle',__('Form Name', 'salesforce'),$content);
 
-										$content = '<style type="text/css">th{text-align:left;}</style><table id="salesforce_form_editor">';
+										$content = '<style type="text/css">th{text-align:left;}</style>';
+										$content .= '<table id="salesforce_form_editor" class="wp-list-table widefat fixed">';
 										$content .= '<tr>'
-										.'<th width="15%">'.__('Field','salesforce').'</th>'
-										.'<th width="5%">'.__('Enable','salesforce').'</th>'
-										.'<th width="10%">'.__('Required','salesforce').'</th>'
-										.'<th width="10%">'.__('Type','salesforce').'</th>'
-										.'<th width="20%">'.__('Label','salesforce').'</th>'
-										.'<th width="10%">'.__('Value','salesforce').'</th>'
-										.'<th width="15%">'.__('Options','salesforce').'</th>'
-										.'<th width="10%">'.__('Position','salesforce').'</th>'
+										.'<th width="10%">'.__('Field','salesforce').'</th>'
+										.'<th width="15%">'.__('Operations','salesforce').'</th>'
+										.'<th width="12%">'.__('Type','salesforce').'</th>'
+										.'<th width="13%">'.__('Label','salesforce').'</th>'
+										.'<th width="15%">'.__('Value','salesforce').'</th>'
+										.'<th width="20%">'.__('Options','salesforce').'</th>'
+										.'<th width="8%">'.__('Position','salesforce').'</th>'
 										.'</tr>';
 										$i = 1;
 										foreach ($options['forms'][$form_id]['inputs'] as $field => $input) {
 											if (empty($input['pos']))
 												$input['pos'] = $i;
-											$content .= '<tr>';
+											$content .= '<tr class="' . (($i % 2) ? 'alternate' : '') . '">';
 											$content .= '<th>'.$field.'</th>';
-											$content .= '<td><input type="checkbox" name="inputs['.$field.'_show]" '.checked($input['show'],true,false).'/></td>';
-											$content .= '<td><input type="checkbox" name="inputs['.$field.'_required]" '.checked($input['required'],true,false).'/></td>';
+											$content .= '<td>';
+											$content .= '<table>';
+											$content .= '<tr>';
+											$content .= '<td><label for="inputs['.$field.'_show]">Enabled</label></td>';
+											$content .= '<td><input type="checkbox" name="inputs['.$field.'_show]" id="inputs['.$field.'_show]" '.checked($input['show'],true,false).'/></td>';
+											$content .= '</tr><tr>';
+											$content .= '<td><label for="inputs['.$field.'_required]">Required</label></td>';
+											$content .= '<td><input type="checkbox" name="inputs['.$field.'_required]" id="inputs['.$field.'_required]" '.checked($input['required'],true,false).'/></td>';
+											$content .= '</tr><tr>';
+											$content .= '<td><label for="inputs['.$field.'_delete]">Delete</label></td>';
+											$content .= '<td><input type="checkbox" name="inputs['.$field.'_delete]" id="inputs['.$field.'_delete]" /></td>';
+											$content .= '</tr>';
+											$content .= '</table>';
+											$content .= '</td>';
 											$content .= '<td><select name="inputs['.$field.'_type]">';
 											$content .= '<option '.selected($input['type'],'text',false).'>text</option>';
 											$content .= '<option '.selected($input['type'],'textarea',false).'>textarea</option>';
@@ -424,9 +440,9 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 											$content .= '<option '.selected($input['type'],'current_date',false).'>current_date</option>';
 											$content .= '<option '.selected($input['type'],'html',false).'>html</option>';
 											$content .= '</select></td>';
-											$content .= '<td><input size="20" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
+											$content .= '<td><input size="10" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
 											
-											$content .= '<td><input size="20" name="inputs['.$field.'_value]" type="text" value="';
+											$content .= '<td><input size="14" name="inputs['.$field.'_value]" type="text" value="';
 											if( isset($input['value']) ) $content .= esc_html($input['value']);
 											$content .= '"/></td>';
 											$content .= '<td><input name="inputs['.$field.'_opts]" type="text" value="'.esc_html($input['opts']).'"/></td>';
@@ -446,8 +462,10 @@ function salesforce_add_field(){
 	
 	var row = '<tr>';
 	row += '<td><input type="text" size="10" name="add_inputs['+i+'][field_name]"></td>';
-	row += '<td><input type="checkbox" name="add_inputs['+i+'][show]"></td>';
-	row += '<td><input type="checkbox" name="add_inputs['+i+'][required]"></td>';
+	row += '<td><table>'
+	row += '<tr><td><label for="add_inputs['+i+'][show]">Enabled</label></td><td><input type="checkbox" name="add_inputs['+i+'][show]"></td></tr>';
+	row += '<tr><td><label for="add_inputs['+i+'][required]">Required</label></td><td><input type="checkbox" name="add_inputs['+i+'][required]"></td></tr>';
+	row += '</table></td>';
 	row += '<td><select name="add_inputs['+i+'][type]">'
 		+ '<option>text</option>'
 		+ '<option>textarea</option>'
@@ -457,13 +475,13 @@ function salesforce_add_field(){
 		+ '<option>current_date</option>'
 		+ '<option>html</option>'
 		+ '</select></td>';
-	row += '<td><input type="text" name="add_inputs['+i+'][label]"></td>';
-	row += '<td><input type="text" name="add_inputs['+i+'][value]"></td>';
+	row += '<td><input size="10" type="text" name="add_inputs['+i+'][label]"></td>';
+	row += '<td><input size="14" type="text" name="add_inputs['+i+'][value]"></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][opts]"></td>';
 	row += '<td><input type="text" size="2" name="add_inputs['+i+'][pos]" value="'+pos+'"></td>';
 	row += '</tr>';
 	
-	jQuery('#salesforce_form_editor tbody').append(row);
+	jQuery('#salesforce_form_editor > tbody').append(row);
 	
 	pos++;
 	i++;
@@ -475,7 +493,8 @@ function salesforce_add_field(){
 										
 										$content .= '<p><a class="button-secondary" href="javascript:salesforce_add_field();">Add a field</a></p>';
 										
-										$this->postbox('sffields',__('Form Fields', 'salesforce'),$content);
+										// $this->postbox('sffields',__('Form Fields', 'salesforce'),$content);
+										echo $content;
 										
 										$content = '<p>';
 										$content .= '<label>'.__('Lead Source:','salesforce').'</label><br/>';
@@ -710,10 +729,12 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
       if ($input['type'] == 'checkbox') {
         $content .= "\t\n\t".'<input type="checkbox" id="sf_'.$id.'" class="w2linput checkbox" name="'.$id.'" value="'.$val.'" />'."\n\n";
       }
-      $content .= "\t".'<label class="w2llabel'.$error.$input['type'].($input['type'] == 'checkbox' ? ' w2llabel-checkbox-label' : '').'" for="sf_'.$id.'">'.( $input['opts'] == 'html' && $input['type'] == 'checkbox' ? stripslashes($input['label']) : esc_html(stripslashes($input['label'])));
-      if ($input['type'] != 'checkbox') {
-        $content .= ':';
-      }
+      if (!empty($input['label'])) {
+	      $content .= "\t".'<label class="w2llabel'.$error.$input['type'].($input['type'] == 'checkbox' ? ' w2llabel-checkbox-label' : '').'" for="sf_'.$id.'">'.( $input['opts'] == 'html' && $input['type'] == 'checkbox' ? stripslashes($input['label']) : esc_html(stripslashes($input['label'])));
+	      if (!in_array($input['type'], array('checkbox', 'html'))) {
+	        $content .= ':';
+	      }
+	    }
 		}
 		
 		if ($input['required'] && $input['type'] != 'hidden' && $input['type'] != 'current_date')
