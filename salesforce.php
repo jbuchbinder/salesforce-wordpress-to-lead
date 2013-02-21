@@ -475,13 +475,13 @@ function salesforce_add_field(){
 		+ '<option>current_date</option>'
 		+ '<option>html</option>'
 		+ '</select></td>';
-	row += '<td><input type="text" name="add_inputs['+i+'][label]"></td>';
-	row += '<td><input type="text" name="add_inputs['+i+'][value]"></td>';
+	row += '<td><input size="10" type="text" name="add_inputs['+i+'][label]"></td>';
+	row += '<td><input size="14" type="text" name="add_inputs['+i+'][value]"></td>';
 	row += '<td><input type="text" name="add_inputs['+i+'][opts]"></td>';
 	row += '<td><input type="text" size="2" name="add_inputs['+i+'][pos]" value="'+pos+'"></td>';
 	row += '</tr>';
 	
-	jQuery('#salesforce_form_editor tbody').append(row);
+	jQuery('#salesforce_form_editor > tbody').append(row);
 	
 	pos++;
 	i++;
