@@ -952,7 +952,7 @@ function salesforce_cc_admin($post, $options, $form_id = 1){
 	$from_email = apply_filters('salesforce_w2l_cc_admin_from_email', get_option('admin_email'));
 	
 	$headers = 'From: '.$from_name.' <' . $from_email . ">\r\n";
-	if (!empty(get_option('email_sender'))) {
+	if (get_option('email_sender') != '') {
 		$headers .= 'Sender: '.get_option('email_sender')."\r\n";
 	}
 	$headers .= 'Reply-to: '.$from_name.' <' . $from_email . ">\r\n";
