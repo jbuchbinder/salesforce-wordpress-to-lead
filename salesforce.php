@@ -205,6 +205,7 @@ if ( ! class_exists( 'Salesforce_Admin' ) ) {
 									$content .= '<small>'.__('Use %BLOG_NAME% to auto-insert the blog title into the subject','salesforce').'</small><br/><br/><br/>';
 
 									$content .= $this->checkbox('ccadmin',__('Send blog admin an email notification', 'salesforce') );
+									$content .= $this->checkbox('email_sender',__('Use this sender', 'salesforce') );
 									$this->postbox('sfsettings',__('Email Settings', 'salesforce'),$content); 
 
 									$content = $this->textinput('submitbutton',__('Submit button text', 'salesforce') );
@@ -552,6 +553,7 @@ function salesforce_default_settings() {
 	$options['subject']	 			= __('Thank you for contacting %BLOG_NAME%','salesforce');
 	$options['showccuser'] 			= true;
 	$options['ccusermsg']			= __('Send me a copy','salesforce');
+	$options['email_sender']		= '';
 	$options['ccadmin']				= false;
 	$options['captcha']				= false;
 
@@ -929,6 +931,10 @@ function salesforce_cc_admin($post, $options, $form_id = 1){
 	$from_email = apply_filters('salesforce_w2l_cc_admin_from_email', get_option('admin_email'));
 	
 	$headers = 'From: '.$from_name.' <' . $from_email . ">\r\n";
+	if (!empty(get_option('email_sender'))) {
+		$headers .= 'Sender: '.get_option('email_sender')."\r\n";
+	}
+	$headers .= 'Reply-to: '.$from_name.' <' . $from_email . ">\r\n";
 
 	$subject = __('Salesforce WP to Lead Submission','salesforce');
 
