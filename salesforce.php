@@ -687,6 +687,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		.w2limg{ display: block; clear: both; }
 		#salesforce{ margin:3px 0 0 0; color:#aaa; }
 		#salesforce a{ color:#999; }
+		SPAN.required { font-weight: bold; }
 		</style>';
 	} elseif ($is_sidebar && $options['usecss']) {
 		$content .= '<style type="text/css">
@@ -700,6 +701,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		.sidebar .w2linput.submit { margin:10px 0 0 0; }
 		#salesforce{ margin:3px 0 0 0; color:#aaa; }
 		#salesforce a{ color:#999; }
+		SPAN.required { font-weight: bold; }
 		</style>';
 	}
 	$sidebar = '';
@@ -740,7 +742,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		}
 		
 		if ($input['required'] && $input['type'] != 'hidden' && $input['type'] != 'current_date')
-			$content .= ' <em>*</em>';
+			$content .= ' <span class="required">*</span>';
 		
 		if($input['type'] != 'hidden' && $input['type'] != 'current_date') {
 			$content .= '</label>'."\n";
