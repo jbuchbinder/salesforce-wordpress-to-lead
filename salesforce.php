@@ -444,9 +444,9 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 											$content .= '<td><input size="10" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
 											
 											$content .= '<td><input size="14" name="inputs['.$field.'_value]" type="text" value="';
-											if( isset($input['value']) ) $content .= esc_html($input['value']);
+											if( isset($input['value']) ) $content .= esc_html(stripslashes($input['value']));
 											$content .= '"/></td>';
-											$content .= '<td><input name="inputs['.$field.'_opts]" type="text" value="'.esc_html($input['opts']).'"/></td>';
+											$content .= '<td><input name="inputs['.$field.'_opts]" type="text" value="'.esc_html(stripslashes($input['opts'])).'"/></td>';
 											$content .= '<td><input size="2" name="inputs['.$field.'_pos]" type="text" value="'.esc_html($input['pos']).'"/></td>';
 											$content .= '</tr>';
 											$i++;
@@ -764,7 +764,7 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 		} else if ($input['type'] == 'current_date') {
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.date($input['opts']).'">'."\n\n";
 		} else if ($input['type'] == 'html'){
-			$content .= $input['opts']."\n\n";
+			$content .= stripslashes($input['opts'])."\n\n";
 		} else if ($input['type'] == 'select') {
 			$content .= "\t\n\t".'<select id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-select style-select' : 'w2linput select';
