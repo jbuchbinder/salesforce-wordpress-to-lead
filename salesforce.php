@@ -724,21 +724,26 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			if( isset($input['value']) ) $val	= esc_attr(strip_tags(stripslashes($input['value'])));
 		}
 
+		if($input['type'] != 'hidden' && $input['type'] != 'current_date') {
+			$content .= '<div>';
+		}
+
 		$error 	= ' ';
-		if (isset($input['error']) && $input['error']) 
+		if (isset($input['error']) && $input['error']) {
 			$error 	= ' error ';
+		}
 			
 		if($input['type'] != 'hidden' && $input['type'] != 'current_date') {
-      if ($options['wpcf7css']) { $content .= '<p>'; }
-      if ($input['type'] == 'checkbox') {
-        $content .= "\t\n\t".'<input type="checkbox" id="sf_'.$id.'" class="w2linput checkbox" name="'.$id.'" value="'.$val.'" />'."\n\n";
-      }
-      if (!empty($input['label'])) {
-	      $content .= "\t".'<label class="w2llabel'.$error.$input['type'].($input['type'] == 'checkbox' ? ' w2llabel-checkbox-label' : '').'" for="sf_'.$id.'">'.( $input['opts'] == 'html' && $input['type'] == 'checkbox' ? stripslashes($input['label']) : esc_html(stripslashes($input['label'])));
-	      if (!in_array($input['type'], array('checkbox', 'html'))) {
-	        $content .= ':';
-	      }
-	    }
+			if ($options['wpcf7css']) { $content .= '<p>'; }
+			if ($input['type'] == 'checkbox') {
+				$content .= "\t\n\t".'<input type="checkbox" id="sf_'.$id.'" class="w2linput checkbox" name="'.$id.'" value="'.$val.'" />'."\n\n";
+			}
+			if (!empty($input['label'])) {
+				$content .= "\t".'<label class="w2llabel'.$error.$input['type'].($input['type'] == 'checkbox' ? ' w2llabel-checkbox-label' : '').'" for="sf_'.$id.'">'.( $input['opts'] == 'html' && $input['type'] == 'checkbox' ? stripslashes($input['label']) : esc_html(stripslashes($input['label'])));
+				if (!in_array($input['type'], array('checkbox', 'html'))) {
+					$content .= ':';
+				}
+			}
 		}
 		
 		if ($input['required'] && $input['type'] != 'hidden' && $input['type'] != 'current_date')
@@ -753,12 +758,12 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 			$content .= "\t".'<input value="'.$val.'" id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-text' : 'w2linput text';
 			$content .= $options['wpcf7css'] && $input['required'] ? ' wpcf7-validates-as-required required' : '';
-			$content .= '" name="'.$id.'" type="text"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'/><br/>'."\n\n";
+			$content .= '" name="'.$id.'" type="text"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'/>'."\n\n";
 		} else if ($input['type'] == 'textarea') {
 			$content .= "\t".( !$options['wpcf7css'] ? '<br/>' : '' )."\n\t".'<textarea id="sf_'.$id.'" class="';
 			$content .= $options['wpcf7css'] ? 'wpcf7-form-control wpcf7-textarea' : 'w2linput textarea';
 			$content .= $options['wpcf7css'] && $input['required'] ? ' wpcf7-validates-as-required required' : '';
-			$content .= '" name="'.$id.'"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'>'.$val.'</textarea><br/>'."\n\n";
+			$content .= '" name="'.$id.'"'.( !empty($input['opts']) ? ' placeholder="'.$input['opts'].'" title="'.$input['opts'].'"' : '' ).'>'.$val.'</textarea>'."\n\n";
 		} else if ($input['type'] == 'hidden') {
 			$content .= "\t\n\t".'<input type="hidden" id="sf_'.$id.'" class="w2linput hidden" name="'.$id.'" value="'.$val.'">'."\n\n";
 		} else if ($input['type'] == 'current_date') {
@@ -781,10 +786,11 @@ function salesforce_form($options, $is_sidebar = false, $content = '', $form_id 
 					$content .= '<option value="' . $v . '">' . $k . '</option>' . "\n";
 				}
 			}
-			$content .= '</select><br/>'."\n\n";
+			$content .= '</select>'."\n\n";
 		}
 		if($input['type'] != 'hidden' && $input['type'] != 'current_date') {
 			if ($options['wpcf7css']) { $content .= '</span></p>'; }
+			$content .= '</div>';
 		}
 	}
 
