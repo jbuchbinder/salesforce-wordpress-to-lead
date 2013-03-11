@@ -441,7 +441,7 @@ if(isset($_POST['mode']) && $_POST['mode'] == 'delete' && $form_id != 1 ){
 											$content .= '<option '.selected($input['type'],'current_date',false).'>current_date</option>';
 											$content .= '<option '.selected($input['type'],'html',false).'>html</option>';
 											$content .= '</select></td>';
-											$content .= '<td><input size="10" name="inputs['.$field.'_label]" type="text" value="'.esc_html($input['label']).'"/></td>';
+											$content .= '<td><input size="10" name="inputs['.$field.'_label]" type="text" value="'.esc_html(stripslashes($input['label'])).'"/></td>';
 											
 											$content .= '<td><input size="14" name="inputs['.$field.'_value]" type="text" value="';
 											if( isset($input['value']) ) $content .= esc_html(stripslashes($input['value']));
