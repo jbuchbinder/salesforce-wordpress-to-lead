@@ -1034,6 +1034,8 @@ function salesforce_form_shortcode($atts) {
 			} else if ($id == 'email' && $input['required'] && !is_email($_POST[$id]) ) {
 				$error = true;
 				$emailerror = true;
+			} else if (strcmp($input['type'], 'checkbox') !== FALSE && isset($_POST[$id])) {
+				$post[$id] = 1;
 			} else {
 				if( isset($_POST[$id]) ) $post[$id] = trim(strip_tags(stripslashes($_POST[$id])));
 			}
